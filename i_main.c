@@ -68,9 +68,6 @@ static void tprintf(void)
 
 int main(int argc, const char * const * argv)
 {
-	/* cphipps - call to video specific startup code */
-	I_InitScreen();
-
 	tprintf();
 
 	I_InitTimer();

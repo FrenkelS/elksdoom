@@ -103,12 +103,6 @@ static memblock_t __far* segmentToPointer(segment_t seg)
 }
 
 
-void Z_Shutdown(void)
-{
-
-}
-
-
 static segment_t I_ZoneBase(uint32_t *size)
 {
 	uint32_t paragraphs = 550 * 1024L / PARAGRAPH_SIZE;

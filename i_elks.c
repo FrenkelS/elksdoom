@@ -24,6 +24,8 @@
  *-----------------------------------------------------------------------------*/
 
 #include <stdarg.h>
+#include <termios.h>
+#include <unistd.h>
 #include <sys/time.h>
 
 #include "doomdef.h"
@@ -146,47 +148,45 @@ void I_InitGraphics(void)
 // Keyboard code
 //
 
-#define KBDQUESIZE 32
-
-static byte keyboardqueue[KBDQUESIZE];
-static int16_t kbdtail, kbdhead;
+static struct termios oldt;
 static boolean isKeyboardIsrSet = false;
 
 
-void I_InitScreen(void)
+static void makeraw(struct termios *t)
 {
-	I_SetScreenMode(3);
+	t->c_cc[VMIN]  = 0;
+	t->c_cc[VTIME] = 0;
+
+	t->c_cflag &= ~(CSIZE | PARENB | CSTOPB);
+	t->c_cflag |= (CS8 | CREAD);
+	t->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP);
+	t->c_iflag &= ~(INLCR | IGNCR | ICRNL | IXON | IXOFF);
+	t->c_iflag |= (BRKINT | IGNPAR);
+	t->c_oflag &= ~(OPOST | OLCUC | OCRNL | ONOCR | ONLRET | OFILL | OFDEL);
+	t->c_oflag &= ~(NLDLY | CRDLY | TABDLY | BSDLY | VTDLY | FFDLY);
+	t->c_oflag |= (ONLCR | NL0 | CR0 | TAB3 | BS0 | VT0 | FF0);
+	t->c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHONL);
+	t->c_lflag &= ~(NOFLSH | XCASE);
+	t->c_lflag &= ~(ECHOPRT | ECHOCTL | ECHOKE);
+}
+
+
+void I_InitKeyboard(void)
+{
+	struct termios newt;
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	makeraw(&newt);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
 	isKeyboardIsrSet = true;
 }
 
 
-#define SC_ESCAPE			0x01
-#define SC_MINUS			0x0c
-#define SC_PLUS				0x0d
-#define SC_TAB				0x0f
-#define SC_BRACKET_LEFT		0x1a
-#define SC_BRACKET_RIGHT	0x1b
-#define SC_ENTER			0x1c
-#define SC_CTRL				0x1d
-#define SC_LSHIFT			0x2a
-#define SC_RSHIFT			0x36
-#define SC_COMMA			0x33
-#define SC_PERIOD			0x34
-#define SC_ALT				0x38
-#define SC_SPACE			0x39
-#define SC_F10				0x44
-#define SC_UPARROW			0x48
-#define SC_DOWNARROW		0x50
-#define SC_LEFTARROW		0x4b
-#define SC_RIGHTARROW		0x4d
-
-#define SC_Q	0x10
-#define SC_P	0x19
-#define SC_A	0x1e
-#define SC_L	0x26
-#define SC_Z	0x2c
-#define SC_M	0x32
+static void I_ShutdownKeyboard(void)
+{
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+}
 
 
 void I_StartTic(void)
@@ -195,114 +195,74 @@ void I_StartTic(void)
 	// process keyboard events
 	//
 
-	while (kbdtail < kbdhead)
+	byte k;
+	ssize_t r = read(STDIN_FILENO, &k, 1);
+	while (r > 0)
 	{
 		event_t ev;
-		byte k = keyboardqueue[kbdtail & (KBDQUESIZE - 1)];
-		kbdtail++;
+		ev.type = ev_keydown;
+		ev.data1 = -1;
 
-		// extended keyboard shift key bullshit
-		if ((k & 0x7f) == SC_LSHIFT || (k & 0x7f) == SC_RSHIFT)
-		{
-			if (keyboardqueue[(kbdtail - 2) & (KBDQUESIZE - 1)] == 0xe0)
-				continue;
-			k &= 0x80;
-			k |= SC_RSHIFT;
-		}
-
-		if (k == 0xe0)
-			continue;               // special / pause keys
-		if (keyboardqueue[(kbdtail - 2) & (KBDQUESIZE - 1)] == 0xe1)
-			continue;                               // pause key bullshit
-
-		if (k == 0xc5 && keyboardqueue[(kbdtail - 2) & (KBDQUESIZE - 1)] == 0x9d)
-		{
-			//ev.type  = ev_keydown;
-			//ev.data1 = KEY_PAUSE;
-			//D_PostEvent(&ev);
-			continue;
-		}
-
-		if (k & 0x80)
-			ev.type = ev_keyup;
-		else
-			ev.type = ev_keydown;
-
-		k &= 0x7f;
 		switch (k)
 		{
-			case SC_ESCAPE:
+			case 27: // Escape
 				ev.data1 = KEYD_START;
 				break;
-			case SC_ENTER:
-			case SC_SPACE:
+			case 13: // Enter
+			case ' ':
 				ev.data1 = KEYD_A;
 				break;
-			case SC_RSHIFT:
-				ev.data1 = KEYD_SPEED;
-				break;
-			case SC_UPARROW:
+			//case : // Shift
+			//	ev.data1 = KEYD_SPEED;
+			//	break;
+			case '8':
 				ev.data1 = KEYD_UP;
 				break;
-			case SC_DOWNARROW:
+			case '2':
 				ev.data1 = KEYD_DOWN;
 				break;
-			case SC_LEFTARROW:
+			case '4':
 				ev.data1 = KEYD_LEFT;
 				break;
-			case SC_RIGHTARROW:
+			case '6':
 				ev.data1 = KEYD_RIGHT;
 				break;
-			case SC_TAB:
+			case 9: // Tab
 				ev.data1 = KEYD_SELECT;
 				break;
-			case SC_CTRL:
+			case '/':
 				ev.data1 = KEYD_B;
 				break;
-			case SC_ALT:
-				ev.data1 = KEYD_STRAFE;
-				break;
-			case SC_COMMA:
+			//case : // Alt
+			//	ev.data1 = KEYD_STRAFE;
+			//	break;
+			case ',':
 				ev.data1 = KEYD_L;
 				break;
-			case SC_PERIOD:
+			case '.':
 				ev.data1 = KEYD_R;
 				break;
-			case SC_MINUS:
+			case '-':
 				ev.data1 = KEYD_MINUS;
 				break;
-			case SC_PLUS:
+			case '+':
 				ev.data1 = KEYD_PLUS;
 				break;
-			case SC_BRACKET_LEFT:
+			case '[':
 				ev.data1 = KEYD_BRACKET_LEFT;
 				break;
-			case SC_BRACKET_RIGHT:
+			case ']':
 				ev.data1 = KEYD_BRACKET_RIGHT;
 				break;
 
-			case SC_F10:
+			case 17: // Ctrl + Q
 				I_Quit();
-			default:
-				if (SC_Q <= k && k <= SC_P)
-				{
-					ev.data1 = "qwertyuiop"[k - SC_Q];
-					break;
-				}
-				else if (SC_A <= k && k <= SC_L)
-				{
-					ev.data1 = "asdfghjkl"[k - SC_A];
-					break;
-				}
-				else if (SC_Z <= k && k <= SC_M)
-				{
-					ev.data1 = "zxcvbnm"[k - SC_Z];
-					break;
-				}
-				else
-					continue;
 		}
-		D_PostEvent(&ev);
+
+		if (ev.data1 != -1)
+			D_PostEvent(&ev);
+
+		r = read(STDIN_FILENO, &k, 1);
 	}
 }
 
@@ -313,8 +273,6 @@ void I_StartTic(void)
 //
 
 static int32_t basetime;
-
-static boolean isTimerSet;
 
 
 static int32_t clock()
@@ -335,14 +293,6 @@ int32_t I_GetTime(void)
 void I_InitTimer(void)
 {
 	basetime = clock();
-
-	isTimerSet = true;
-}
-
-
-static void I_ShutdownTimer(void)
-{
-
 }
 
 
@@ -358,35 +308,10 @@ static void I_Shutdown(void)
 
 	I_ShutdownSound();
 
-	if (isTimerSet)
-		I_ShutdownTimer();
-
 	if (isKeyboardIsrSet)
-	{
-	}
-
-	Z_Shutdown();
+		I_ShutdownKeyboard();
 }
 
-
-static void I_SetCursorPosition(void);
-#pragma aux I_SetCursorPosition = \
-	"push si",		\
-	"push di",		\
-	"push bp",		\
-	"push es",		\
-	"cli",			\
-	"mov ah, 2",	\
-	"mov bh, 0",	\
-	"mov dl, 0",	\
-	"mov dh, 23",	\
-	"int 0x10",		\
-	"sti",			\
-	"pop es",		\
-	"pop bp",		\
-	"pop di",		\
-	"pop si"		\
-	modify [bh dx]
 
 void I_Quit(void)
 {
@@ -395,9 +320,6 @@ void I_Quit(void)
 	int16_t lumpnum = W_GetNumForName("ENDOOM");
 	W_ReadLumpByNum(lumpnum, D_MK_FP(0xb800, __djgpp_conventional_base));
 
-	I_SetCursorPosition();
-
-	printf("\n");
 	exit(0);
 }
 

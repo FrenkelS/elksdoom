@@ -11,7 +11,17 @@ It's based on [Doom8088](https://github.com/FrenkelS/Doom8088).
 Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 
 ## Controls:
-Not implemented yet
+|Action                 |             |
+|-----------------------|-------------|
+|Fire                   |/            |
+|Use                    |Enter & Space|
+|Walk                   |8, 2, 4, 6   |
+|Strafe left and right  |< & >        |
+|Automap                |Tab          |
+|Automap zoom in and out|+ & -        |
+|Weapon up and down     |[ & ]        |
+|Menu                   |Esc          |
+|Quit to DOS            |Ctrl + Q     |
 
 ## Cheats:
 Not implemented yet

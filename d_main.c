@@ -500,6 +500,8 @@ static void D_DoomMainSetup(void)
 
     I_InitGraphics();
 
+    I_InitKeyboard();
+
     int16_t p = M_CheckParm("-timedemo");
     if (p && p < myargc - 1)
     {
