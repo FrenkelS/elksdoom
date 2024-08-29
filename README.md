@@ -8,6 +8,7 @@ Usually these systems are 32-bit or more and have a flat memory model.
 
 ELKSDOOM is a port for [ELKS](https://github.com/ghaerr/elks).
 It's based on [Doom8088](https://github.com/FrenkelS/Doom8088).
+Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 
 ## Controls:
 Not implemented yet
