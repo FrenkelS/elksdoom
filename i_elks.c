@@ -92,9 +92,10 @@ void __far* _fmemcpy(void __far* destination, const void __far* source, size_t n
 void __far* _fmemset(void __far* str, int c, size_t n)
 {
 	uint8_t __far* d = (uint8_t __far*)str;
+	uint8_t b = c;
 
 	for (size_t i = 0; i < n; i++)
-		*d++ = c;
+		*d++ = b;
 
 	return NULL;
 }
@@ -103,14 +104,11 @@ void __far* _fmemset(void __far* str, int c, size_t n)
 char __far* _fstrcpy(char __far* destination, const char __far* source)
 {
 	char __far* s = (char __far*)source;
-	char c = *s++;
 
-	while (!c)
-	{
-		*destination++ = c;
-		c = *s++;
-	}
-	*destination = 0;
+	while (*s)
+		*destination++ = *s++;
+
+	*destination = '\0';
 
 	return NULL;
 }
@@ -121,7 +119,7 @@ size_t _fstrlen(const char __far* str)
 	size_t l = 0;
 	char __far* s = (char __far*)str;
 
-	while (!s)
+	while (*s)
 	{
 		l++;
 		s++;
@@ -253,6 +251,13 @@ void I_StartTic(void)
 				break;
 			case ']':
 				ev.data1 = KEYD_BRACKET_RIGHT;
+				break;
+
+			case 'y':
+				ev.data1 = 'y';
+				break;
+			case 'n':
+				ev.data1 = 'n';
 				break;
 
 			case 17: // Ctrl + Q
