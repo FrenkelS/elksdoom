@@ -150,7 +150,7 @@ static struct termios oldt;
 static boolean isKeyboardIsrSet = false;
 
 
-static void makeraw(struct termios *t)
+static void I_cfmakeraw(struct termios *t)
 {
 	t->c_cc[VMIN]  = 0;
 	t->c_cc[VTIME] = 0;
@@ -174,7 +174,7 @@ void I_InitKeyboard(void)
 	struct termios newt;
 	tcgetattr(STDIN_FILENO, &oldt);
 	newt = oldt;
-	makeraw(&newt);
+	I_cfmakeraw(&newt);
 	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
 	isKeyboardIsrSet = true;
@@ -199,7 +199,6 @@ void I_StartTic(void)
 	{
 		event_t ev;
 		ev.type = ev_keydown;
-		ev.data1 = -1;
 
 		switch (k)
 		{
@@ -243,7 +242,7 @@ void I_StartTic(void)
 			case '-':
 				ev.data1 = KEYD_MINUS;
 				break;
-			case '+':
+			case '=':
 				ev.data1 = KEYD_PLUS;
 				break;
 			case '[':
@@ -252,16 +251,16 @@ void I_StartTic(void)
 			case ']':
 				ev.data1 = KEYD_BRACKET_RIGHT;
 				break;
-
-			case 'y':
-				ev.data1 = 'y';
-				break;
-			case 'n':
-				ev.data1 = 'n';
-				break;
-
 			case 17: // Ctrl + Q
 				I_Quit();
+				break;
+
+			default:
+				if ('a' <= k && k <= 'z')
+					ev.data1 = k;
+				else
+					ev.data1 = -1;
+				break;
 		}
 
 		if (ev.data1 != -1)

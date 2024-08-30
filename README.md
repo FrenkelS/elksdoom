@@ -24,7 +24,22 @@ Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 |Quit to DOS            |Ctrl + Q     |
 
 ## Cheats:
-Not implemented yet
+|Code      |Effects                  |
+|----------|-------------------------|
+|IDCHOPPERS|Chainsaw                 |
+|IDDQD     |God mode                 |
+|IDKFA     |Ammo & Keys              |
+|IDKA      |Ammo                     |
+|IDSPISPOPD|No Clipping              |
+|IDBEHOLDV |Invincibility            |
+|IDBEHOLDS |Berserk                  |
+|IDBEHOLDI |Invisibility             |
+|IDBEHOLDR |Radiation shielding suit |
+|IDBEHOLDA |Auto-map                 |
+|IDBEHOLDL |Lite-Amp Goggles         |
+|IDCLEV    |Exit Level               |
+|IDROCKET  |Enemy Rockets (GoldenEye)|
+|IDRATE    |Toggle FPS counter       |
 
 ## Command line arguments:
 |Command line argument|Effect       |
