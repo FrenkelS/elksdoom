@@ -153,11 +153,11 @@ void Z_Init (void)
 			blocksegment[1] = temp;
 		}
 
-		printf("Total: %ld bytes allocated for zone\n", blocksize[0] + blocksize[1] - PARAGRAPH_SIZE);
+		printf("%6ld bytes allocated for zone\n", blocksize[0] + blocksize[1] - PARAGRAPH_SIZE);
 	}
 	else
 	{
-		printf("Total: %ld bytes allocated for zone\n", blocksize[0]);
+		printf("%6ld bytes allocated for zone\n", blocksize[0]);
 	}
 
 	static uint8_t __far* mainzone; mainzone = D_MK_FP(blocksegment[0], 0);
