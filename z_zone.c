@@ -105,25 +105,27 @@ static memblock_t __far* segmentToPointer(segment_t seg)
 
 static segment_t I_ZoneBase(uint32_t *size)
 {
-	uint32_t paragraphs = 550 * 1024L / PARAGRAPH_SIZE;
+	uint32_t paragraphs = 640 * 1024L / PARAGRAPH_SIZE;
+
 	uint8_t __far* ptr = fmemalloc(paragraphs * PARAGRAPH_SIZE);
-	while (!ptr)
+	while (paragraphs != 0 && ptr == NULL)
 	{
 		paragraphs--;
 		ptr = fmemalloc(paragraphs * PARAGRAPH_SIZE);
 	}
 
-	// align ptr
-	uint32_t m = (uint32_t) ptr;
-	if ((m & (PARAGRAPH_SIZE - 1)) != 0)
+	if (paragraphs == 0)
 	{
-		paragraphs--;
-		while ((m & (PARAGRAPH_SIZE - 1)) != 0)
-			m = (uint32_t) ++ptr;
+		*size = 0;
+		return 0;
 	}
-
-	*size = paragraphs * PARAGRAPH_SIZE;
-	return D_FP_SEG(ptr);
+	else
+	{
+		*size = paragraphs * PARAGRAPH_SIZE;
+		segment_t segment = D_FP_SEG(ptr);
+		printf("%6ld bytes allocated at 0x%4x\n", *size, segment);
+		return segment;
+	}
 }
 
 
@@ -132,10 +134,33 @@ static segment_t I_ZoneBase(uint32_t *size)
 //
 void Z_Init (void)
 {
-	// allocate all available conventional memory.
-	uint32_t heapSize;
-	segment_t segment = I_ZoneBase(&heapSize);
-	static uint8_t __far* mainzone; mainzone = D_MK_FP(segment, 0);
+	// allocate (almost) all available conventional memory.
+	uint32_t  blocksize[2];
+	segment_t blocksegment[2];
+	blocksegment[0] = I_ZoneBase(&blocksize[0]);
+	blocksegment[1] = I_ZoneBase(&blocksize[1]);
+
+	if (blocksize[1] != 0)
+	{
+		if (blocksegment[1] < blocksegment[0])
+		{
+			uint32_t tmp = blocksize[0];
+			blocksize[0] = blocksize[1];
+			blocksize[1] = tmp;
+
+			segment_t temp  = blocksegment[0];
+			blocksegment[0] = blocksegment[1];
+			blocksegment[1] = temp;
+		}
+
+		printf("Total: %ld bytes allocated for zone\n", blocksize[0] + blocksize[1] - PARAGRAPH_SIZE);
+	}
+	else
+	{
+		printf("Total: %ld bytes allocated for zone\n", blocksize[0]);
+	}
+
+	static uint8_t __far* mainzone; mainzone = D_MK_FP(blocksegment[0], 0);
 
 	// align blocklist
 	uint_fast8_t i = 0;
@@ -150,7 +175,7 @@ void Z_Init (void)
 	mainzone_sentinal = D_MK_FP(D_FP_SEG(mainzone_sentinal) + D_FP_OFF(mainzone_sentinal) / PARAGRAPH_SIZE, 0);
 #endif
 
-	// set the entire zone to one free block
+	// set the entire zone to one / two free block(s)
 	memblock_t __far* block = (memblock_t __far*)mainzone;
 	mainzone_rover_segment = pointerToSegment(block);
 
@@ -159,7 +184,7 @@ void Z_Init (void)
 	mainzone_sentinal->next = mainzone_rover_segment;
 	mainzone_sentinal->prev = mainzone_rover_segment;
 
-	block->size = heapSize;
+	block->size = blocksize[0];
 	block->tag  = 0;
 	block->user = NULL; // NULL indicates a free block.
 	block->prev = pointerToSegment(mainzone_sentinal);
@@ -168,7 +193,32 @@ void Z_Init (void)
 	block->id   = ZONEID;
 #endif
 
-	printf("%ld bytes allocated for zone\n", heapSize);
+	if (blocksize[1] > 0)
+	{
+		segment_t romblock_segment = mainzone_rover_segment + blocksize[0] / PARAGRAPH_SIZE - 1;
+		memblock_t __far* romblock = segmentToPointer(romblock_segment);
+		romblock->size = (uint32_t)(blocksegment[1] - romblock_segment) * PARAGRAPH_SIZE;
+		romblock->tag  = PU_STATIC;
+		romblock->user = (void __far*)mainzone;
+		romblock->next = blocksegment[1];
+		romblock->prev = mainzone_rover_segment;
+#if defined ZONEIDCHECK
+		romblock->id   = ZONEID;
+#endif
+
+		memblock_t __far* umbblock = segmentToPointer(blocksegment[1]);
+		umbblock->size = blocksize[1];
+		umbblock->tag  = 0;
+		umbblock->user = NULL; // NULL indicates a free block.
+		umbblock->next = block->next; // == pointerToSegment(mainzone_sentinal)
+		umbblock->prev = romblock_segment;
+#if defined ZONEIDCHECK
+		umbblock->id   = ZONEID;
+#endif
+
+		block->size -= PARAGRAPH_SIZE;
+		block->next = romblock_segment;
+	}
 }
 
 
