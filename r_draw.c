@@ -686,6 +686,9 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
     const int16_t fclip_x = mfloorclip[dcvars->x];
     const int16_t cclip_x = mceilingclip[dcvars->x];
 
+    // somehow this while loop turns sometimes into an infinite loop
+    int16_t infinite_loop_hack = 10;
+
     while (column->topdelta != 0xff)
     {
         // calculate unclipped screen coordinates for post
@@ -716,6 +719,8 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
         }
 
         column = (const column_t __far*)((const byte __far*)column + column->length + 4);
+
+        if (--infinite_loop_hack == 0) break;
     }
 
     dcvars->texturemid = basetexturemid;
