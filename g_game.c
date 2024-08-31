@@ -97,7 +97,7 @@ wbstartstruct_t _g_wminfo;               // parms for world map / intermission
 static int32_t             totalleveltimes;      // CPhipps - total time for all completed levels
 
 
-static boolean gamekeydown[NUMKEYS];
+static int8_t gamekeydown[NUMKEYS];
 
 static skill_t d_skill;
 
@@ -304,6 +304,12 @@ void G_BuildTiccmd(void)
 
     netcmd.forwardmove += fudgef((int8_t)forward);
     netcmd.sidemove += side;
+
+    for (int16_t i = 0; i < NUMKEYS; i++)
+    {
+        if (gamekeydown[i] > 0)
+            gamekeydown[i]--;
+    }
 }
 
 
@@ -350,6 +356,8 @@ static void G_DoLoadLevel (void)
 // Get info needed to make ticcmd_ts for the players.
 //
 
+#define REPEATRATE 8
+
 void G_Responder (event_t* ev)
 {
     // any other key pops up menu if in demos
@@ -380,21 +388,8 @@ void G_Responder (event_t* ev)
         return;
     }
 
-    switch (ev->type)
-    {
-        case ev_keydown:
-            if (ev->data1 < NUMKEYS)
-                gamekeydown[ev->data1] = true;
-            return;    // eat key down events
-
-        case ev_keyup:
-            if (ev->data1 < NUMKEYS)
-                gamekeydown[ev->data1] = false;
-            return;   // always let key up events filter down
-
-        default:
-            break;
-    }
+    if (ev->data1 < NUMKEYS)
+        gamekeydown[ev->data1] = REPEATRATE;
 }
 
 //
