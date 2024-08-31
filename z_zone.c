@@ -103,9 +103,9 @@ static memblock_t __far* segmentToPointer(segment_t seg)
 }
 
 
-static segment_t I_ZoneBase(uint32_t *size)
+static segment_t I_ZoneBase(uint32_t initialsizetotry, uint32_t *size)
 {
-	uint32_t paragraphs = 640 * 1024L / PARAGRAPH_SIZE;
+	uint32_t paragraphs = initialsizetotry / PARAGRAPH_SIZE;
 
 	uint8_t __far* ptr = fmemalloc(paragraphs * PARAGRAPH_SIZE);
 	while (paragraphs != 0 && ptr == NULL)
@@ -137,8 +137,8 @@ void Z_Init (void)
 	// allocate (almost) all available conventional memory.
 	uint32_t  blocksize[2];
 	segment_t blocksegment[2];
-	blocksegment[0] = I_ZoneBase(&blocksize[0]);
-	blocksegment[1] = I_ZoneBase(&blocksize[1]);
+	blocksegment[0] = I_ZoneBase(640 * 1024L,  &blocksize[0]);
+	blocksegment[1] = I_ZoneBase(blocksize[0], &blocksize[1]);
 
 	if (blocksize[1] != 0)
 	{
