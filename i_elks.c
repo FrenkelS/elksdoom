@@ -193,78 +193,82 @@ void I_StartTic(void)
 	// process keyboard events
 	//
 
+	event_t ev;
+	ev.type = ev_keydown;
+
 	byte k;
 	ssize_t r = read(STDIN_FILENO, &k, 1);
 	while (r > 0)
 	{
-		event_t ev;
-		ev.type = ev_keydown;
+		if (k == 17) // Ctrl + Q
+			I_Quit();
 
-		switch (k)
+		if ('a' <= k && k <= 'z')
 		{
-			case 27: // Escape
-				ev.data1 = KEYD_START;
-				break;
-			case 13: // Enter
-			case ' ':
-				ev.data1 = KEYD_A;
-				break;
-			//case : // Shift
-			//	ev.data1 = KEYD_SPEED;
-			//	break;
-			case '8':
-				ev.data1 = KEYD_UP;
-				break;
-			case '2':
-				ev.data1 = KEYD_DOWN;
-				break;
-			case '4':
-				ev.data1 = KEYD_LEFT;
-				break;
-			case '6':
-				ev.data1 = KEYD_RIGHT;
-				break;
-			case 9: // Tab
-				ev.data1 = KEYD_SELECT;
-				break;
-			case '/':
-				ev.data1 = KEYD_B;
-				break;
-			//case : // Alt
-			//	ev.data1 = KEYD_STRAFE;
-			//	break;
-			case ',':
-				ev.data1 = KEYD_L;
-				break;
-			case '.':
-				ev.data1 = KEYD_R;
-				break;
-			case '-':
-				ev.data1 = KEYD_MINUS;
-				break;
-			case '=':
-				ev.data1 = KEYD_PLUS;
-				break;
-			case '[':
-				ev.data1 = KEYD_BRACKET_LEFT;
-				break;
-			case ']':
-				ev.data1 = KEYD_BRACKET_RIGHT;
-				break;
-			case 17: // Ctrl + Q
-				I_Quit();
-				break;
-
-			default:
-				if ('a' <= k && k <= 'z')
-					ev.data1 = k;
-				else
-					ev.data1 = -1;
-				break;
-		}
-
-		if (ev.data1 != -1)
+			ev.data1 = k;
 			D_PostEvent(&ev);
+		}
+		else
+		{
+			switch (k)
+			{
+				case 27: // Escape
+					ev.data1 = KEYD_START;
+					break;
+				case 13: // Enter
+				case ' ':
+					ev.data1 = KEYD_A;
+					break;
+				//case : // Shift
+				//	ev.data1 = KEYD_SPEED;
+				//	break;
+				case '8':
+					ev.data1 = KEYD_UP;
+					break;
+				case '2':
+					ev.data1 = KEYD_DOWN;
+					break;
+				case '4':
+					ev.data1 = KEYD_LEFT;
+					break;
+				case '6':
+					ev.data1 = KEYD_RIGHT;
+					break;
+				case 9: // Tab
+					ev.data1 = KEYD_SELECT;
+					break;
+				case '/':
+					ev.data1 = KEYD_B;
+					break;
+				//case : // Alt
+				//	ev.data1 = KEYD_STRAFE;
+				//	break;
+				case ',':
+					ev.data1 = KEYD_L;
+					break;
+				case '.':
+					ev.data1 = KEYD_R;
+					break;
+				case '-':
+					ev.data1 = KEYD_MINUS;
+					break;
+				case '=':
+					ev.data1 = KEYD_PLUS;
+					break;
+				case '[':
+					ev.data1 = KEYD_BRACKET_LEFT;
+					break;
+				case ']':
+					ev.data1 = KEYD_BRACKET_RIGHT;
+					break;
+				default:
+					ev.data1 = -1;
+					break;
+			}
+
+			if (ev.data1 != -1)
+				D_PostEvent(&ev);
+		}
 
 		r = read(STDIN_FILENO, &k, 1);
 	}
