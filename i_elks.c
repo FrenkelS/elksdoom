@@ -294,7 +294,7 @@ static int32_t clock()
 int32_t I_GetTime(void)
 {
 	int32_t now = clock();
-	return ((now - basetime) * TICRATE) / CLOCKS_PER_SEC;
+	return ((now - basetime) * TICRATE) / 1000L;
 }
 
 
