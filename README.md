@@ -11,11 +11,11 @@ It's based on [Doom8088](https://github.com/FrenkelS/Doom8088).
 Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 
 ## Controls:
-|Action                 |             |
+|Action                 |Keys         |
 |-----------------------|-------------|
 |Fire                   |/            |
 |Use                    |Enter & Space|
-|Walk                   |8, 2, 4, 6   |
+|Walk                   |8 & 2 & 4 & 6|
 |Strafe left and right  |< & >        |
 |Automap                |Tab          |
 |Automap zoom in and out|+ & -        |
