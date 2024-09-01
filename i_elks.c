@@ -193,6 +193,12 @@ void I_StartTic(void)
 	// process keyboard events
 	//
 
+	static uint8_t prev_input_buffer[NUMKEYS];
+	static uint8_t curr_input_buffer[NUMKEYS];
+
+	memcpy(prev_input_buffer, curr_input_buffer, NUMKEYS);
+	memset(curr_input_buffer, 0, NUMKEYS);
+
 	event_t ev;
 	ev.type = ev_keydown;
 
@@ -213,64 +219,77 @@ void I_StartTic(void)
 			switch (k)
 			{
 				case 27: // Escape
-					ev.data1 = KEYD_START;
+					curr_input_buffer[KEYD_START] = true;
 					break;
 				case 13: // Enter
 				case ' ':
-					ev.data1 = KEYD_A;
+					curr_input_buffer[KEYD_A] = true;
 					break;
 				//case : // Shift
-				//	ev.data1 = KEYD_SPEED;
+				//	curr_input_buffer[KEYD_SPEED] = true;
 				//	break;
 				case '8':
-					ev.data1 = KEYD_UP;
+					curr_input_buffer[KEYD_UP] = true;
 					break;
 				case '2':
-					ev.data1 = KEYD_DOWN;
+					curr_input_buffer[KEYD_DOWN] = true;
 					break;
 				case '4':
-					ev.data1 = KEYD_LEFT;
+					curr_input_buffer[KEYD_LEFT] = true;
 					break;
 				case '6':
-					ev.data1 = KEYD_RIGHT;
+					curr_input_buffer[KEYD_RIGHT] = true;
 					break;
 				case 9: // Tab
-					ev.data1 = KEYD_SELECT;
+					curr_input_buffer[KEYD_SELECT] = true;
 					break;
 				case '/':
-					ev.data1 = KEYD_B;
+					curr_input_buffer[KEYD_B] = true;
 					break;
 				//case : // Alt
-				//	ev.data1 = KEYD_STRAFE;
+				//	curr_input_buffer[KEYD_STRAFE] = true;
 				//	break;
 				case ',':
-					ev.data1 = KEYD_L;
+					curr_input_buffer[KEYD_L] = true;
 					break;
 				case '.':
-					ev.data1 = KEYD_R;
+					curr_input_buffer[KEYD_R] = true;
 					break;
 				case '-':
-					ev.data1 = KEYD_MINUS;
+					curr_input_buffer[KEYD_MINUS] = true;
 					break;
 				case '=':
-					ev.data1 = KEYD_PLUS;
+					curr_input_buffer[KEYD_PLUS] = true;
 					break;
 				case '[':
-					ev.data1 = KEYD_BRACKET_LEFT;
+					curr_input_buffer[KEYD_BRACKET_LEFT] = true;
 					break;
 				case ']':
-					ev.data1 = KEYD_BRACKET_RIGHT;
-					break;
-				default:
-					ev.data1 = -1;
+					curr_input_buffer[KEYD_BRACKET_RIGHT] = true;
 					break;
 			}
-
-			if (ev.data1 != -1)
-				D_PostEvent(&ev);
 		}
 
 		r = read(STDIN_FILENO, &k, 1);
+	}
+
+	for (int16_t i = 0; i < NUMKEYS; i++)
+	{
+		if (curr_input_buffer[i])
+		{
+			ev.data1 = i;
+			D_PostEvent(&ev);
+		}
+	}
+
+	ev.type = ev_keyup;
+	for (int16_t i = 0; i < NUMKEYS; i++)
+	{
+		if (prev_input_buffer[i] && !curr_input_buffer[i])
+		{
+			ev.data1 = i;
+			D_PostEvent(&ev);
+		}
 	}
 }
 
