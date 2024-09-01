@@ -70,8 +70,8 @@ typedef struct
     uint32_t  tag:4;		// purgelevel
 #endif
     void __far*__far*    user;	// NULL if a free block
-    segment_t next;
     segment_t prev;
+    segment_t next;
 #if defined ZONEIDCHECK
     uint16_t id;			// should be ZONEID
 #endif
@@ -83,8 +83,9 @@ typedef struct
 typedef char assertMemblockSize[sizeof(memblock_t) <= PARAGRAPH_SIZE ? 1 : -1];
 
 
-static memblock_t __far* mainzone_sentinal;
-static segment_t   mainzone_rover_segment;
+static memblock_t __far*	mainzone_sentinal;
+static segment_t			mainzone_sentinal_segment;
+static segment_t			mainzone_rover_segment;
 
 
 static segment_t pointerToSegment(const memblock_t __far* ptr)
@@ -129,38 +130,59 @@ static segment_t I_ZoneBase(uint32_t initialsizetotry, uint32_t *size)
 }
 
 
+typedef struct
+{
+	uint32_t  size;
+	segment_t segment;
+} block_t;
+
+
+static int compare(const void* l, const void* r)
+{
+	const block_t* bl = *(const block_t**)l;
+	const block_t* br = *(const block_t**)r;
+
+	return bl->segment - br->segment;
+}
+
+
 //
 // Z_Init
 //
+
+#define MINFRAGMENT		64
+#define MAXBLOCKS		10
+
 void Z_Init (void)
 {
-	// allocate (almost) all available conventional memory.
-	uint32_t  blocksize[2];
-	segment_t blocksegment[2];
-	blocksegment[0] = I_ZoneBase(640 * 1024L,  &blocksize[0]);
-	blocksegment[1] = I_ZoneBase(blocksize[0], &blocksize[1]);
+	// allocate all available conventional memory.
+	uint32_t heapSize = 0;
 
-	if (blocksize[1] != 0)
+	int16_t  num_blocks = 0;
+	block_t  blocks[MAXBLOCKS];
+	block_t* block_ptrs[MAXBLOCKS];
+
+	uint32_t  blocksize;
+	segment_t blocksegment = I_ZoneBase(640 * 1024L, &blocksize);
+
+	while (blocksize >= MINFRAGMENT)
 	{
-		if (blocksegment[1] < blocksegment[0])
-		{
-			uint32_t tmp = blocksize[0];
-			blocksize[0] = blocksize[1];
-			blocksize[1] = tmp;
+		blocks[num_blocks].size    = blocksize;
+		blocks[num_blocks].segment = blocksegment;
+		block_ptrs[num_blocks] = &blocks[num_blocks];
+		heapSize += blocksize;
+		num_blocks++;
 
-			segment_t temp  = blocksegment[0];
-			blocksegment[0] = blocksegment[1];
-			blocksegment[1] = temp;
-		}
-
-		printf("%6ld bytes allocated for zone\n", blocksize[0] + blocksize[1] - PARAGRAPH_SIZE);
-	}
-	else
-	{
-		printf("%6ld bytes allocated for zone\n", blocksize[0]);
+		blocksegment = I_ZoneBase(blocksize, &blocksize);
 	}
 
-	static uint8_t __far* mainzone; mainzone = D_MK_FP(blocksegment[0], 0);
+	heapSize -= (PARAGRAPH_SIZE * (num_blocks - 1));
+	printf("%6ld bytes allocated for zone\n", heapSize);
+
+	qsort(block_ptrs, num_blocks, sizeof(block_t*), compare);
+
+	mainzone_rover_segment = block_ptrs[0]->segment;
+	memblock_t __far* mainzone = segmentToPointer(mainzone_rover_segment);
 
 	// align blocklist
 	uint_fast8_t i = 0;
@@ -175,49 +197,49 @@ void Z_Init (void)
 	mainzone_sentinal = D_MK_FP(D_FP_SEG(mainzone_sentinal) + D_FP_OFF(mainzone_sentinal) / PARAGRAPH_SIZE, 0);
 #endif
 
-	// set the entire zone to one / two free block(s)
-	memblock_t __far* block = (memblock_t __far*)mainzone;
-	mainzone_rover_segment = pointerToSegment(block);
+	mainzone_sentinal_segment = pointerToSegment(mainzone_sentinal);
 
 	mainzone_sentinal->tag  = PU_STATIC;
 	mainzone_sentinal->user = (void __far*)mainzone;
+	mainzone_sentinal->prev = block_ptrs[num_blocks - 1]->segment;
 	mainzone_sentinal->next = mainzone_rover_segment;
-	mainzone_sentinal->prev = mainzone_rover_segment;
 
-	block->size = blocksize[0];
-	block->tag  = 0;
-	block->user = NULL; // NULL indicates a free block.
-	block->prev = pointerToSegment(mainzone_sentinal);
-	block->next = block->prev;
+	// set the entire zone to a couple of free blocks
+	mainzone->size = block_ptrs[0]->size;
+	mainzone->tag  = 0;
+	mainzone->user = NULL; // NULL indicates a free block.
+	mainzone->prev = mainzone_sentinal_segment;
+	mainzone->next = mainzone_sentinal_segment;
 #if defined ZONEIDCHECK
-	block->id   = ZONEID;
+	mainzone->id   = ZONEID;
 #endif
 
-	if (blocksize[1] > 0)
+	for (int16_t i = 1; i < num_blocks; i++)
 	{
-		segment_t romblock_segment = mainzone_rover_segment + blocksize[0] / PARAGRAPH_SIZE - 1;
+		segment_t romblock_segment = block_ptrs[i - 1]->segment + block_ptrs[i - 1]->size / PARAGRAPH_SIZE - 1;
 		memblock_t __far* romblock = segmentToPointer(romblock_segment);
-		romblock->size = (uint32_t)(blocksegment[1] - romblock_segment) * PARAGRAPH_SIZE;
+		romblock->size = (uint32_t)(block_ptrs[i]->segment - romblock_segment) * PARAGRAPH_SIZE;
 		romblock->tag  = PU_STATIC;
 		romblock->user = (void __far*)mainzone;
-		romblock->next = blocksegment[1];
-		romblock->prev = mainzone_rover_segment;
+		romblock->prev = block_ptrs[i - 1]->segment;
+		romblock->next = block_ptrs[i]->segment;
 #if defined ZONEIDCHECK
 		romblock->id   = ZONEID;
 #endif
 
-		memblock_t __far* umbblock = segmentToPointer(blocksegment[1]);
-		umbblock->size = blocksize[1];
+		memblock_t __far* umbblock = segmentToPointer(block_ptrs[i]->segment);
+		umbblock->size = block_ptrs[i]->size;
 		umbblock->tag  = 0;
 		umbblock->user = NULL; // NULL indicates a free block.
-		umbblock->next = block->next; // == pointerToSegment(mainzone_sentinal)
 		umbblock->prev = romblock_segment;
+		umbblock->next = mainzone_sentinal_segment;
 #if defined ZONEIDCHECK
 		umbblock->id   = ZONEID;
 #endif
 
-		block->size -= PARAGRAPH_SIZE;
-		block->next = romblock_segment;
+		memblock_t __far* prevblock = segmentToPointer(block_ptrs[i - 1]->segment);
+		prevblock->size -= PARAGRAPH_SIZE;
+		prevblock->next = romblock_segment;
 	}
 }
 
@@ -334,8 +356,6 @@ static uint32_t Z_GetLargestFreeBlockSize(void)
 {
 	uint32_t largestFreeBlockSize = 0;
 
-	segment_t mainzone_sentinal_segment = pointerToSegment(mainzone_sentinal);
-
 	for (memblock_t __far* block = segmentToPointer(mainzone_sentinal->next); pointerToSegment(block) != mainzone_sentinal_segment; block = segmentToPointer(block->next))
 		if (!block->user && block->size > largestFreeBlockSize)
 			largestFreeBlockSize = block->size;
@@ -346,8 +366,6 @@ static uint32_t Z_GetLargestFreeBlockSize(void)
 static uint32_t Z_GetTotalFreeMemory(void)
 {
 	uint32_t totalFreeMemory = 0;
-
-	segment_t mainzone_sentinal_segment = pointerToSegment(mainzone_sentinal);
 
 	for (memblock_t __far* block = segmentToPointer(mainzone_sentinal->next); pointerToSegment(block) != mainzone_sentinal_segment; block = segmentToPointer(block->next))
 		if (!block->user)
@@ -362,8 +380,6 @@ static uint32_t Z_GetTotalFreeMemory(void)
 // You can pass a NULL user if the tag is < PU_PURGELEVEL.
 // Because Z_TryMalloc is static, we can control the input and we can make sure tag is always < PU_PURGELEVEL.
 //
-#define MINFRAGMENT		64
-
 
 static void __far* Z_TryMalloc(uint16_t size, int8_t tag, void __far*__far* user)
 {
@@ -537,8 +553,6 @@ void Z_FreeTags(void)
 {
     memblock_t __far* next;
 
-    segment_t mainzone_sentinal_segment = pointerToSegment(mainzone_sentinal);
-
     for (memblock_t __far* block = segmentToPointer(mainzone_sentinal->next); pointerToSegment(block) != mainzone_sentinal_segment; block = next)
     {
         // get link before freeing
@@ -558,8 +572,6 @@ void Z_FreeTags(void)
 //
 void Z_CheckHeap (void)
 {
-    segment_t mainzone_sentinal_segment = pointerToSegment(mainzone_sentinal);
-
     for (memblock_t __far* block = segmentToPointer(mainzone_sentinal->next); ; block = segmentToPointer(block->next))
     {
         if (block->next == mainzone_sentinal_segment)
