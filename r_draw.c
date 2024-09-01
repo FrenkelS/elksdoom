@@ -686,9 +686,6 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
     const int16_t fclip_x = mfloorclip[dcvars->x];
     const int16_t cclip_x = mceilingclip[dcvars->x];
 
-    // somehow this while loop turns sometimes into an infinite loop
-    int16_t infinite_loop_hack = 10;
-
     while (column->topdelta != 0xff)
     {
         // calculate unclipped screen coordinates for post
@@ -719,8 +716,6 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
         }
 
         column = (const column_t __far*)((const byte __far*)column + column->length + 4);
-
-        if (--infinite_loop_hack == 0) break;
     }
 
     dcvars->texturemid = basetexturemid;
@@ -1331,7 +1326,7 @@ static void R_ProjectSprite (mobj_t __far* thing, int16_t lightlevel)
         return;
     }
 
-    fixed_t xr = CENTERX * FRACUNIT + FixedMul(tx + (((int32_t)patch->width) << FRACBITS), xscale) - FRACUNIT;
+    fixed_t xr = CENTERX * FRACUNIT - FRACUNIT + FixedMul(tx + (((int32_t)patch->width) << FRACBITS), xscale);
     const int16_t x2 = (xr >> FRACBITS);
 
     // off the side?
