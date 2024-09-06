@@ -76,6 +76,32 @@ static uint8_t inp(uint16_t port);
 	parm [dx]
 
 
+static const uint8_t colors[14][3] =
+{
+	// normal
+	{0, 0, 0},
+
+	// red
+	{0x23, 0, 0},
+	{0x27, 0, 0},
+	{0x2b, 0, 0},
+	{0x2f, 0, 0},
+	{0x33, 0, 0},
+	{0x37, 0, 0},
+	{0x3b, 0, 0},
+	{0x3f, 0, 0},
+
+	// yellow
+	{0x13, 0x13, 0},
+	{0x17, 0x17, 0},
+	{0x1b, 0x1b, 0},
+	{0x1f, 0x1f, 0},
+
+	// green
+	{0, 0x1f, 0}
+};
+
+
 static void I_UploadNewPalette(int8_t pal)
 {
 	char lumpName[9] = "PLAYPAL0";
@@ -94,6 +120,13 @@ static void I_UploadNewPalette(int8_t pal)
 			outp(PEL_DATA, (*palette++) >> 2);
 
 		Z_ChangeTagToCache(palette_lump);
+	}
+	else
+	{
+		outp(PEL_WRITE_ADR, 0);
+		outp(PEL_DATA, colors[pal][0]);
+		outp(PEL_DATA, colors[pal][1]);
+		outp(PEL_DATA, colors[pal][2]);
 	}
 }
 
