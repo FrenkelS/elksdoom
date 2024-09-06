@@ -686,9 +686,6 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
     const int16_t fclip_x = mfloorclip[dcvars->x];
     const int16_t cclip_x = mceilingclip[dcvars->x];
 
-    // somehow this while loop turns sometimes into an infinite loop
-    int16_t infinite_loop_hack = 10;
-
     while (column->topdelta != 0xff)
     {
         // calculate unclipped screen coordinates for post
@@ -719,8 +716,6 @@ static void R_DrawMaskedColumn(R_DrawColumn_f colfunc, draw_column_vars_t *dcvar
         }
 
         column = (const column_t __far*)((const byte __far*)column + column->length + 4);
-
-        if (--infinite_loop_hack == 0) break;
     }
 
     dcvars->texturemid = basetexturemid;
@@ -1144,35 +1139,38 @@ static void R_DrawPlayerSprites(void)
 //
 // R_SortVisSprites
 //
-static int compare (const void* l, const void* r)
-{
-	const vissprite_t* vl = *(const vissprite_t**)l;
-	const vissprite_t* vr = *(const vissprite_t**)r;
 
-	fixed_t diff = vr->scale - vl->scale;
-	if (!diff)
-		return 0;
-	else if (diff < 0)
-		return -1;
-	else
-		return 1;
+// insertion sort
+static void isort(vissprite_t **s, int16_t n)
+{
+	for (int16_t i = 1; i < n; i++)
+	{
+		vissprite_t *temp = s[i];
+		if (s[i - 1]->scale < temp->scale)
+		{
+			int16_t j = i;
+			while ((s[j] = s[j - 1])->scale < temp->scale && --j)
+				;
+			s[j] = temp;
+		}
+	}
 }
 
 #define MAXVISSPRITES 96
-static int8_t num_vissprite;
+static int16_t num_vissprite;
 static vissprite_t vissprites[MAXVISSPRITES];
 static vissprite_t* vissprite_ptrs[MAXVISSPRITES];
 
 static void R_SortVisSprites (void)
 {
-    int8_t i = num_vissprite;
+    int16_t i = num_vissprite;
 
     if (i)
     {
         while (--i >= 0)
             vissprite_ptrs[i] = vissprites + i;
 
-        qsort(vissprite_ptrs, num_vissprite, sizeof (vissprite_t*), compare);
+        isort(vissprite_ptrs, num_vissprite);
     }
 }
 
@@ -1189,7 +1187,7 @@ static void R_DrawMasked(void)
     R_SortVisSprites();
 
     // draw all vissprites back to front
-    for (int8_t i = num_vissprite; --i >= 0; )
+    for (int16_t i = num_vissprite; --i >= 0; )
         R_DrawSprite(vissprite_ptrs[i]);
 
     // render any remaining masked mid textures
@@ -1331,7 +1329,7 @@ static void R_ProjectSprite (mobj_t __far* thing, int16_t lightlevel)
         return;
     }
 
-    fixed_t xr = CENTERX * FRACUNIT + FixedMul(tx + (((int32_t)patch->width) << FRACBITS), xscale) - FRACUNIT;
+    fixed_t xr = CENTERX * FRACUNIT - FRACUNIT + FixedMul(tx + (((int32_t)patch->width) << FRACBITS), xscale);
     const int16_t x2 = (xr >> FRACBITS);
 
     // off the side?

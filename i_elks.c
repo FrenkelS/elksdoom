@@ -1,7 +1,7 @@
 /*-----------------------------------------------------------------------------
  *
  *
- *  Copyright (C) 2023-2024 Frenkel Smeijers
+ *  Copyright (C) 2024 Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -23,10 +23,12 @@
  *
  *-----------------------------------------------------------------------------*/
 
+#include <fcntl.h>
 #include <stdarg.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/time.h>
+#include <linuxmt/mem.h>
+#include <sys/ioctl.h>
 
 #include "doomdef.h"
 #include "doomtype.h"
@@ -299,27 +301,32 @@ void I_StartTic(void)
 // Returns time in 1/35th second tics.
 //
 
-static int32_t basetime;
-
-
-static int32_t clock()
-{
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	return now.tv_sec * 1000L + now.tv_usec / 1000L;
-}
+static uint32_t __far* pjiffies;
 
 
 int32_t I_GetTime(void)
 {
-	int32_t now = clock();
-	return ((now - basetime) * TICRATE) / 1000L;
+	uint32_t tick10ms = *pjiffies; /* read kernel 10ms timer directly */
+	//return tick10ms * TICRATE / 100;
+	return (tick10ms * TICRATE * 10) / 1024;
 }
 
 
 void I_InitTimer(void)
 {
-	basetime = clock();
+	int16_t fd = open("/dev/kmem", O_RDONLY);
+	if (fd < 0) {
+		I_Error("No kmem");
+	}
+
+	uint16_t kernel_ds, offset;
+	if (ioctl(fd, MEM_GETDS,       &kernel_ds) < 0
+	 || ioctl(fd, MEM_GETJIFFADDR, &offset   ) < 0) {
+		I_Error("No mem ioctl");
+	}
+	close(fd);
+
+	pjiffies = D_MK_FP(kernel_ds, offset);
 }
 
 
