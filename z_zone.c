@@ -142,7 +142,10 @@ static int compare(const void* l, const void* r)
 	const block_t* bl = *(const block_t**)l;
 	const block_t* br = *(const block_t**)r;
 
-	return bl->segment - br->segment;
+	if (bl->segment < br->segment)
+		return -1;
+	else
+		return 1;
 }
 
 
