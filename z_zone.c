@@ -144,8 +144,10 @@ static int compare(const void* l, const void* r)
 
 	if (bl->segment < br->segment)
 		return -1;
-	else
+	else if (bl->segment > br->segment)
 		return 1;
+	else
+		return 0;
 }
 
 
