@@ -205,16 +205,10 @@ void I_StartTic(void)
 		if (k == 17) // Ctrl + Q
 			I_Quit();
 
-		if ('a' <= k && k <= 'z')
-		{
-			ev.data1 = k;
-			D_PostEvent(&ev);
-		}
-		else
 		{
 			switch (k)
 			{
-				case 27: // Escape
+				case '`': // Real ESC Escape is discarded since prefix for arrow keys
 					ev.data1 = KEYD_START;
 					break;
 				case 13: // Enter
@@ -225,15 +219,27 @@ void I_StartTic(void)
 				//	ev.data1 = KEYD_SPEED;
 				//	break;
 				case '8':
+				case 'k':
+				case 'd':
+				case 'A':
 					ev.data1 = KEYD_UP;
 					break;
 				case '2':
+				case 'j':
+				case 's':
+				case 'B':
 					ev.data1 = KEYD_DOWN;
 					break;
 				case '4':
+				case 'h':
+				case 'a':
+				case 'D':
 					ev.data1 = KEYD_LEFT;
 					break;
 				case '6':
+				case 'l':
+				case 'f':
+				case 'C':
 					ev.data1 = KEYD_RIGHT;
 					break;
 				case 9: // Tab
@@ -257,14 +263,22 @@ void I_StartTic(void)
 				case '=':
 					ev.data1 = KEYD_PLUS;
 					break;
-				case '[':
+				case '{':
 					ev.data1 = KEYD_BRACKET_LEFT;
 					break;
 				case ']':
+				case '}':
 					ev.data1 = KEYD_BRACKET_RIGHT;
 					break;
-				default:
+				case 27:
+				case '[':
+				case '~':
 					ev.data1 = -1;
+					break;
+				default:
+					if ('a' <= k && k <= 'z')
+						ev.data1 = k;
+					else ev.data1 = -1;
 					break;
 			}
 
