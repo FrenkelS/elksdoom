@@ -192,8 +192,8 @@ enum
 {
   newgame = 0,
   options,
-  loadgame,
 #if !defined DISABLE_SAVE_GAME
+  loadgame,
   savegame,
 #endif
   quitdoom,
@@ -211,8 +211,8 @@ static const menuitem_t MainMenu[]=
 {
   {1,"M_NGAME", M_NewGame},
   {1,"M_OPTION",M_Options},
-  {1,"M_LOADG", M_LoadGame},
 #if !defined DISABLE_SAVE_GAME
+  {1,"M_LOADG", M_LoadGame},
   {1,"M_SAVEG", M_SaveGame},
 #endif
   {1,"M_QUITG", M_QuitDOOM}
