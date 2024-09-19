@@ -388,6 +388,26 @@ void G_Responder (event_t* ev)
         return;
     }
 
+    switch (ev->data1)
+    {
+        case 'a':
+        case 'h':
+            ev->data1 = KEYD_LEFT;
+            break;
+        case 's':
+        case 'j':
+            ev->data1 = KEYD_DOWN;
+            break;
+        case 'd':
+        case 'k':
+            ev->data1 = KEYD_UP;
+            break;
+        case 'f':
+        case 'l':
+            ev->data1 = KEYD_RIGHT;
+            break;
+    }
+
     if (ev->data1 < NUMKEYS)
         gamekeydown[ev->data1] = REPEATRATE;
 }

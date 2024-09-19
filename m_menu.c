@@ -811,16 +811,32 @@ static void M_InitDefaults(void)
 
 boolean M_Responder (event_t* ev)
 {
-    int16_t    ch;
-
-    // Mouse input processing removed
-
     // Process keyboard input
 
-    if (ev->type == ev_keydown)
-        ch = ev->data1;
-    else
+    if (ev->type != ev_keydown)
         return false; // we can't use the event here
+
+    switch (ev->data1)
+    {
+        case 'a':
+        case 'h':
+            ev->data1 = KEYD_LEFT;
+            break;
+        case 's':
+        case 'j':
+            ev->data1 = KEYD_DOWN;
+            break;
+        case 'd':
+        case 'k':
+            ev->data1 = KEYD_UP;
+            break;
+        case 'f':
+        case 'l':
+            ev->data1 = KEYD_RIGHT;
+            break;
+    }
+
+    int16_t ch = ev->data1;
 
     // Take care of any messages that need input
 

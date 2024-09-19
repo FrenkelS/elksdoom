@@ -11,18 +11,18 @@ It's based on [Doom8088](https://github.com/FrenkelS/Doom8088).
 Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 
 ## Controls:
-|Action                 |Keys                      |
-|-----------------------|--------------------------|
-|Fire                   |/                         |
-|Use                    |Enter & Space             |
-|Walk                   |Arrow keys & 8 & 2 & 4 & 6|
-|Strafe left and right  |< & >                     |
-|Automap                |Tab                       |
-|Automap zoom in and out|+ & -                     |
-|Automap follow mode    |F                         |
-|Weapon up and down     |[ & ]                     |
-|Menu                   |Esc                       |
-|Quit to ELKS           |Ctrl + Q                  |
+|Action                 |Keys                                                      |
+|-----------------------|----------------------------------------------------------|
+|Fire                   |/                                                         |
+|Use                    |Enter & Space                                             |
+|Walk                   |Arrow keys & 8 & 2 & 4 & 6 & A & S & D & F & H & J & K & L|
+|Strafe left and right  |< & >                                                     |
+|Automap                |Tab                                                       |
+|Automap zoom in and out|+ & -                                                     |
+|Automap follow mode    |F                                                         |
+|Weapon up and down     |[ & ]                                                     |
+|Menu                   |Esc                                                       |
+|Quit to ELKS           |Ctrl + Q                                                  |
 
 ## Cheats:
 |Code      |Effects                  |
