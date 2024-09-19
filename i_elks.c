@@ -198,27 +198,79 @@ void I_StartTic(void)
 	event_t ev;
 	ev.type = ev_keydown;
 
-	byte k;
+	uint8_t k;
 	ssize_t r = read(STDIN_FILENO, &k, 1);
 	while (r > 0)
 	{
-		if (k == 17) // Ctrl + Q
-			I_Quit();
+		ev.data1 = -1;
 
-		if ('a' <= k && k <= 'z')
+		if (k == 0x1b)
+		{
+			r = read(STDIN_FILENO, &k, 1);
+			if (r <= 0)
+			{
+				// Escape
+				ev.data1 = KEYD_START;
+			}
+			else
+			{
+				if (0x61 <= k && k <= 0x6c)
+				{
+					// F1 - F12 not supported
+				}
+				else if (k == 0x5b)
+				{
+					r = read(STDIN_FILENO, &k, 1);
+					if (r <= 0)
+					{
+						// [
+						// Escape followed by [ is not supported
+					}
+					else
+					{
+						if (k == 0x32 || k == 0x35 || k == 0x36)
+						{
+							// Insert, Page Up, Page Down not supported
+							uint8_t temp;
+							read(STDIN_FILENO, &temp, 1);
+						}
+						else
+						{
+							switch (k)
+							{
+								case 0x41: ev.data1 = KEYD_UP;    break;
+								case 0x42: ev.data1 = KEYD_DOWN;  break;
+								case 0x43: ev.data1 = KEYD_RIGHT; break;
+								case 0x44: ev.data1 = KEYD_LEFT;  break;
+								default: break; //not supported
+							}
+						}
+					}
+				}
+				else
+				{
+					// Escape followed by an unknown key not supported
+				}
+			}
+		}
+		else if (k == 0x11) // Ctrl + Q
+		{
+			I_Quit();
+		}
+		else if ('a' <= k && k <= 'z')
 		{
 			ev.data1 = k;
-			D_PostEvent(&ev);
+		}
+		else if ('A' <= k && k <= 'Z')
+		{
+			ev.data1 = k | 0x20; // tolower(k);
 		}
 		else
 		{
 			switch (k)
 			{
-				case 27: // Escape
-					ev.data1 = KEYD_START;
-					break;
-				case 13: // Enter
-				case ' ':
+				case 0x0d: // Enter
+				case ' ':  // Spacebar
 					ev.data1 = KEYD_A;
 					break;
 				//case : // Shift
@@ -236,7 +288,7 @@ void I_StartTic(void)
 				case '6':
 					ev.data1 = KEYD_RIGHT;
 					break;
-				case 9: // Tab
+				case 0x09: // Tab
 					ev.data1 = KEYD_SELECT;
 					break;
 				case '/':
@@ -263,14 +315,11 @@ void I_StartTic(void)
 				case ']':
 					ev.data1 = KEYD_BRACKET_RIGHT;
 					break;
-				default:
-					ev.data1 = -1;
-					break;
 			}
-
-			if (ev.data1 != -1)
-				D_PostEvent(&ev);
 		}
+
+		if (ev.data1 != -1)
+			D_PostEvent(&ev);
 
 		r = read(STDIN_FILENO, &k, 1);
 	}
