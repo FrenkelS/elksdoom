@@ -1,3 +1,5 @@
+set -e
+
 CCOPTSS="-os             -bt=none -0 -zq -s -mm -wx -zastd=c99 -zls"
 CCOPTST="-oaxet -oh -ol+ -bt=none -0 -zq -s -mm -wx -zastd=c99 -zls"
 
