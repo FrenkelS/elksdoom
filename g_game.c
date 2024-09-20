@@ -392,24 +392,25 @@ void G_Responder (event_t* ev)
     {
         case 'a':
         case 'h':
-            ev->data1 = KEYD_LEFT;
+            gamekeydown[KEYD_LEFT] = REPEATRATE;
             break;
         case 's':
         case 'j':
-            ev->data1 = KEYD_DOWN;
+            gamekeydown[KEYD_DOWN] = REPEATRATE;
             break;
         case 'd':
         case 'k':
-            ev->data1 = KEYD_UP;
+            gamekeydown[KEYD_UP] = REPEATRATE;
             break;
         case 'f':
         case 'l':
-            ev->data1 = KEYD_RIGHT;
+            gamekeydown[KEYD_RIGHT] = REPEATRATE;
+            break;
+        default:
+            if (ev->data1 < NUMKEYS)
+                gamekeydown[ev->data1] = REPEATRATE;
             break;
     }
-
-    if (ev->data1 < NUMKEYS)
-        gamekeydown[ev->data1] = REPEATRATE;
 }
 
 //

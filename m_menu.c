@@ -816,27 +816,30 @@ boolean M_Responder (event_t* ev)
     if (ev->type != ev_keydown)
         return false; // we can't use the event here
 
+    int16_t ch;
+
     switch (ev->data1)
     {
         case 'a':
         case 'h':
-            ev->data1 = KEYD_LEFT;
+            ch = KEYD_LEFT;
             break;
         case 's':
         case 'j':
-            ev->data1 = KEYD_DOWN;
+            ch = KEYD_DOWN;
             break;
         case 'd':
         case 'k':
-            ev->data1 = KEYD_UP;
+            ch = KEYD_UP;
             break;
         case 'f':
         case 'l':
-            ev->data1 = KEYD_RIGHT;
+            ch = KEYD_RIGHT;
+            break;
+        default:
+            ch = ev->data1;
             break;
     }
-
-    int16_t ch = ev->data1;
 
     // Take care of any messages that need input
 
