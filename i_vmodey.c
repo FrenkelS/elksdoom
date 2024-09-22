@@ -63,19 +63,6 @@ extern const int16_t CENTERY;
 static uint8_t  __far* _s_screen;
 
 
-static void outp(uint16_t port, uint8_t data);
-#pragma aux outp = \
-	"out dx, al" \
-	parm [dx] [al]
-
-
-static uint8_t inp(uint16_t port);
-#pragma aux inp = \
-	"in al, dx" \
-	value [al]	\
-	parm [dx]
-
-
 static const uint8_t colors[14][3] =
 {
 	// normal
