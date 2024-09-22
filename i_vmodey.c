@@ -239,7 +239,6 @@ void I_FinishUpdate(void)
 #define COLEXTRABITS (8 - 1)
 #define COLBITS (8 + 1)
 
-static uint8_t nearcolormap[256];
 
 #if defined _M_I86
 #define L_FP_OFF D_FP_OFF
@@ -249,6 +248,9 @@ static uint16_t nearcolormapoffset = 0xffff;
 static uint32_t nearcolormapoffset = 0xffffffff;
 #endif
 
+
+#if defined C_ONLY
+static uint8_t nearcolormap[256];
 static const uint8_t __far* source;
 static uint8_t __far* dest;
 
@@ -298,6 +300,14 @@ static void R_DrawColumn2(uint16_t fracstep, uint16_t frac, int16_t count)
 		case  1: *dest = nearcolormap[source[frac >> COLBITS]];
 	}
 }
+#else
+uint8_t nearcolormap[256];
+const uint8_t __far* source;
+uint8_t __far* dest;
+
+
+void R_DrawColumn2(uint16_t fracstep, uint16_t frac, int16_t count);
+#endif
 
 
 void R_DrawColumn(const draw_column_vars_t *dcvars)
