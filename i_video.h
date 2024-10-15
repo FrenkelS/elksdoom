@@ -35,7 +35,7 @@ void I_FinishUpdate(void);
 
 
 void R_DrawColumn (const draw_column_vars_t *dcvars);
-void R_DrawColumnFlat(int16_t texture, const draw_column_vars_t *dcvars);
+void R_DrawColumnFlat(uint8_t color, const draw_column_vars_t *dcvars);
 void R_DrawFuzzColumn (const draw_column_vars_t *dcvars);
 
 
