@@ -48,7 +48,7 @@ Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 |-timedemo demo3      |Run benchmark|
 
 ## Building:
-1) Install [Open Watcom V2.0](https://github.com/open-watcom/open-watcom-v2) on Ubuntu.
+1) Install [Open Watcom V2.0](https://github.com/open-watcom/open-watcom-v2) and [NASM](https://www.nasm.us) on Ubuntu.
 
 2) Change the paths in `setenvwc.sh` and run `source ./setenvwc.sh` to set the environment variables.
 

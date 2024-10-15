@@ -81,6 +81,7 @@ static uint8_t inp(uint16_t port);
 
 void I_FinishUpdate(void);
 
+void I_ReloadPalette(void);
 void I_SetPalette(int8_t pal);
 
 /* I_StartTic
