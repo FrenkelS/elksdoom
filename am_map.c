@@ -70,7 +70,6 @@ static const uint8_t mapcolor_ydor = 231;    // yellow door color
 static const uint8_t mapcolor_tele = 119;    // teleporter line color
 static const uint8_t mapcolor_secr = 252;    // secret sector boundary color
 static const uint8_t mapcolor_unsn = 104;    // computer map unseen line color
-static const uint8_t mapcolor_flat = 88;    // line with no floor/ceiling changes
 static const uint8_t mapcolor_sngl = 208;    // single player arrow color
 
 static const int16_t f_w = SCREENWIDTH;
@@ -213,35 +212,41 @@ static void AM_findMinMaxBoundaries(void)
     int16_t i;
     fixed_t a;
     fixed_t b;
+    int16_t min16_x, min16_y, max16_x, max16_y;
 
-    min_x = min_y =  INT32_MAX;
-    max_x = max_y = -INT32_MAX;
+    min16_x = min16_y =  INT16_MAX;
+    max16_x = max16_y = -INT16_MAX;
 
     for (i=0;i<_g_numlines;i++)
     {
-        if (_g_lines[i].v1.x < min_x)
-            min_x = _g_lines[i].v1.x;
-        else if (_g_lines[i].v1.x > max_x)
-            max_x = _g_lines[i].v1.x;
+        if (_g_lines[i].v1.x < min16_x)
+            min16_x = _g_lines[i].v1.x;
+        else if (_g_lines[i].v1.x > max16_x)
+            max16_x = _g_lines[i].v1.x;
 
-        if (_g_lines[i].v2.x < min_x)
-            min_x = _g_lines[i].v2.x;
-        else if (_g_lines[i].v2.x > max_x)
-            max_x = _g_lines[i].v2.x;
+        if (_g_lines[i].v2.x < min16_x)
+            min16_x = _g_lines[i].v2.x;
+        else if (_g_lines[i].v2.x > max16_x)
+            max16_x = _g_lines[i].v2.x;
 
-        if (_g_lines[i].v1.y < min_y)
-            min_y = _g_lines[i].v1.y;
-        else if (_g_lines[i].v1.y > max_y)
-            max_y = _g_lines[i].v1.y;
+        if (_g_lines[i].v1.y < min16_y)
+            min16_y = _g_lines[i].v1.y;
+        else if (_g_lines[i].v1.y > max16_y)
+            max16_y = _g_lines[i].v1.y;
 
-        if (_g_lines[i].v2.y < min_y)
-            min_y = _g_lines[i].v2.y;
-        else if (_g_lines[i].v2.y > max_y)
-            max_y = _g_lines[i].v2.y;
+        if (_g_lines[i].v2.y < min16_y)
+            min16_y = _g_lines[i].v2.y;
+        else if (_g_lines[i].v2.y > max16_y)
+            max16_y = _g_lines[i].v2.y;
     }
 
-    max_w = (max_x >>= FRACTOMAPBITS) - (min_x >>= FRACTOMAPBITS);//e6y
-    max_h = (max_y >>= FRACTOMAPBITS) - (min_y >>= FRACTOMAPBITS);//e6y
+    min_x = (fixed_t)min16_x << MAPBITS;
+    min_y = (fixed_t)min16_y << MAPBITS;
+    max_x = (fixed_t)max16_x << MAPBITS;
+    max_y = (fixed_t)max16_y << MAPBITS;
+
+    max_w = max_x - min_x;
+    max_h = max_y - min_y;
 
     a = FixedApproxDiv((int32_t)f_w<<FRACBITS, max_w);
     b = FixedApproxDiv((int32_t)f_h<<FRACBITS, max_h);
@@ -828,10 +833,10 @@ static void AM_drawWalls(void)
     // draw the unclipped visible portions of all lines
     for (i=0;i<_g_numlines;i++)
     {
-        l.a.x = _g_lines[i].v1.x >> FRACTOMAPBITS;//e6y
-        l.a.y = _g_lines[i].v1.y >> FRACTOMAPBITS;//e6y
-        l.b.x = _g_lines[i].v2.x >> FRACTOMAPBITS;//e6y
-        l.b.y = _g_lines[i].v2.y >> FRACTOMAPBITS;//e6y
+        l.a.x = (fixed_t)_g_lines[i].v1.x << MAPBITS;
+        l.a.y = (fixed_t)_g_lines[i].v1.y << MAPBITS;
+        l.b.x = (fixed_t)_g_lines[i].v2.x << MAPBITS;
+        l.b.y = (fixed_t)_g_lines[i].v2.y << MAPBITS;
 
 
         const sector_t __far* backsector = LN_BACKSECTOR(&_g_lines[i]);
@@ -846,7 +851,7 @@ static void AM_drawWalls(void)
         }
 
         // if line has been seen or IDDT has been used
-        if (_g_linedata[i].r_flags & ML_MAPPED)
+        if (_g_lines[i].r_flags & ML_MAPPED)
         {
             if (_g_lines[i].flags & ML_DONTDRAW)
                 continue;
@@ -878,7 +883,7 @@ static void AM_drawWalls(void)
             if(!backsector)
             {
                 // jff 1/10/98 add new color for 1S secret sector boundary
-                if (mapcolor_secr && P_WasSecret(frontsector))
+                if (P_WasSecret(frontsector))
                     AM_drawMline(&l, mapcolor_secr); // line bounding secret sector
                 else                               //jff 2/16/98 fixed bug
                     AM_drawMline(&l, mapcolor_wall); // special was cleared
@@ -886,11 +891,7 @@ static void AM_drawWalls(void)
             else /* now for 2S lines */
             {
                 // jff 1/10/98 add color change for all teleporter types
-                if
-                        (
-                         mapcolor_tele && !(_g_lines[i].flags & ML_SECRET) &&
-                         (line_special == 97)
-                         )
+                if (!(_g_lines[i].flags & ML_SECRET) && (line_special == 97))
                 { // teleporters
                     AM_drawMline(&l, mapcolor_tele);
                 }
@@ -900,7 +901,6 @@ static void AM_drawWalls(void)
                 }
                 else if
                         (
-                         mapcolor_clsd &&
                          !(_g_lines[i].flags & ML_SECRET) &&    // non-secret closed door
                          ((backsector->floorheight==backsector->ceilingheight) ||
                           (frontsector->floorheight==frontsector->ceilingheight))
@@ -908,7 +908,7 @@ static void AM_drawWalls(void)
                 {
                     AM_drawMline(&l, mapcolor_clsd);      // non-secret closed door
                 } //jff 1/6/98 show secret sector 2S lines
-                else if (mapcolor_secr && (P_WasSecret(frontsector) || P_WasSecret(backsector)))
+                else if (P_WasSecret(frontsector) || P_WasSecret(backsector))
                 {
                     AM_drawMline(&l, mapcolor_secr); // line bounding secret sector
                 } //jff 1/6/98 end secret sector line change
@@ -928,19 +928,7 @@ static void AM_drawWalls(void)
         {
             if (!(_g_lines[i].flags & ML_DONTDRAW)) // invisible flag lines do not show
             {
-                if
-                        (
-                         mapcolor_flat
-                         ||
-                         !backsector
-                         ||
-                         backsector->floorheight
-                         != frontsector->floorheight
-                         ||
-                         backsector->ceilingheight
-                         != frontsector->ceilingheight
-                         )
-                    AM_drawMline(&l, mapcolor_unsn);
+                AM_drawMline(&l, mapcolor_unsn);
             }
         }
     }

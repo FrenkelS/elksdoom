@@ -75,14 +75,7 @@ typedef struct
 
 // I/O, setting up the stuff.
 void R_Init(void);
-void R_InitFlats(void);
 void R_InitSky(void);
-
-
-// Retrieval.
-// Floor/ceiling opaque texture tiles,
-// lookup by name. For animation?
-int16_t R_FlatNumForName (const char* name);   // killough -- const added
 
 
 // R_*TextureNumForName returns the texture number for the texture name, or NO_TEXTURE if 
