@@ -76,6 +76,20 @@ static uint8_t inp(uint16_t port);
 	parm [dx]
 
 
+static int16_t palettelumpnum;
+
+
+void I_ReloadPalette(void)
+{
+	char lumpName[9] = "PLAYPAL0";
+	if (_g_gamma == 0)
+		lumpName[7] = 0;
+	else
+		lumpName[7] = '0' + _g_gamma;
+	palettelumpnum = W_GetNumForName(lumpName);
+}
+
+
 static const uint8_t colors[14][3] =
 {
 	// normal
@@ -104,14 +118,7 @@ static const uint8_t colors[14][3] =
 
 static void I_UploadNewPalette(int8_t pal)
 {
-	char lumpName[9] = "PLAYPAL0";
-
-	if(_g_gamma == 0)
-		lumpName[7] = 0;
-	else
-		lumpName[7] = '0' + _g_gamma;
-
-	const uint8_t __far* palette_lump = W_TryGetLumpByNum(W_GetNumForName(lumpName));
+	const uint8_t __far* palette_lump = W_TryGetLumpByNum(palettelumpnum);
 	if (palette_lump != NULL)
 	{
 		const byte __far* palette = &palette_lump[pal * 256 * 3];
@@ -134,6 +141,7 @@ static void I_UploadNewPalette(int8_t pal)
 void I_InitGraphicsHardwareSpecificCode(void)
 {
 	I_SetScreenMode(0x13);
+	I_ReloadPalette();
 	I_UploadNewPalette(0);
 
 	__djgpp_nearptr_enable();
