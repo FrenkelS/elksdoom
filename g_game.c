@@ -110,7 +110,6 @@ boolean         _g_respawnmonsters;
 
 boolean         _g_usergame;      // ok to save / end game
 boolean         _g_timingdemo;    // if true, exit with report on completion
-boolean         _g_playeringame;
 boolean         _g_demoplayback;
 boolean         _g_singledemo;           // quit after playing a demo from cmdline
 
@@ -324,8 +323,7 @@ static void G_DoLoadLevel (void)
 
     _g_gamestate = GS_LEVEL;
 
-
-    if (_g_playeringame && _g_player.playerstate == PST_DEAD)
+    if (_g_player.playerstate == PST_DEAD)
         _g_player.playerstate = PST_REBORN;
 
 
@@ -422,7 +420,7 @@ void G_Ticker (void)
 {
     static gamestate_t prevgamestate = 0;
 
-    if(_g_playeringame && _g_player.playerstate == PST_REBORN)
+    if(_g_player.playerstate == PST_REBORN)
         G_DoReborn ();
 
     P_MapEnd();
@@ -466,13 +464,10 @@ void G_Ticker (void)
         _g_basetic++;  // For revenant tracers and RNG -- we must maintain sync
     else
     {
-        if (_g_playeringame)
-        {
-            memcpy(&_g_player.cmd, &netcmd, sizeof(ticcmd_t));
+        memcpy(&_g_player.cmd, &netcmd, sizeof(ticcmd_t));
 
-            if (_g_demoplayback)
-                G_ReadDemoTiccmd ();
-        }
+        if (_g_demoplayback)
+            G_ReadDemoTiccmd ();
     }
 
     // cph - if the gamestate changed, we may need to clean up the old gamestate
@@ -623,8 +618,7 @@ static void G_DoCompleted (void)
 {
     _g_gameaction = ga_nothing;
 
-    if (_g_playeringame)
-        G_PlayerFinishLevel();        // take away cards and stuff
+    G_PlayerFinishLevel();        // take away cards and stuff
 
     if (automapmode & am_active)
         AM_Stop();
@@ -654,7 +648,7 @@ static void G_DoCompleted (void)
     _g_wminfo.partime = TICRATE*pars[_g_gamemap];
 
 
-    _g_wminfo.plyr[0].in = _g_playeringame;
+    _g_wminfo.plyr[0].in = true;
     _g_wminfo.plyr[0].skills = _g_player.killcount;
     _g_wminfo.plyr[0].sitems = _g_player.itemcount;
     _g_wminfo.plyr[0].ssecret = _g_player.secretcount;
@@ -1036,7 +1030,7 @@ static const byte __far* G_ReadDemoHeader(const byte __far* demo_p)
     //e6y: check for overrun
     CheckForOverrun(header_p, demo_p, MAXPLAYERS);
 
-    _g_playeringame = *demo_p++;
+    demo_p++;
     demo_p += MIN_MAXPLAYERS - MAXPLAYERS;
 
 

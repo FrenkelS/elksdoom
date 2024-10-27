@@ -434,12 +434,6 @@ int16_t M_CheckParm(char *check)
 }
 
 
-static void D_InitNetGame (void)
-{
-    _g_playeringame = true;
-}
-
-
 //
 // D_DoomMainSetup
 //
@@ -454,9 +448,6 @@ static void D_DoomMainSetup(void)
     Z_Init();
 
     G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
-
-    // CPhipps - move up netgame init
-    D_InitNetGame();
 
     printf("W_Init: Init WADfiles.\n");
     W_Init(); // CPhipps - handling of wadfiles init changed
