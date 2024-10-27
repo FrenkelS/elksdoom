@@ -58,8 +58,6 @@ typedef struct {
 extern int16_t numnodes;
 extern const mapnode_t __far* nodes;
 
-extern fixed_t  viewx, viewy, viewz;
-
 extern angle_t viewangle;
 
 extern const uint8_t __far* fullcolormap;
@@ -68,8 +66,6 @@ extern const uint8_t __far* fixedcolormap;
 extern int16_t   __far* textureheight; //needed for texture pegging (and TFE fix - killough)
 
 extern int16_t       __far* texturetranslation;
-
-extern fixed_t  viewcos, viewsin;
 
 
 //

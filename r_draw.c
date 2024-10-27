@@ -161,7 +161,7 @@ static int16_t negonearray[VIEWWINDOWWIDTH] =
 int16_t numnodes;
 const mapnode_t __far* nodes;
 
-fixed_t  viewx, viewy, viewz;
+static fixed_t  viewx, viewy, viewz;
 
 angle_t  viewangle;
 static angle16_t viewangle16;
@@ -226,7 +226,7 @@ int16_t   __far* textureheight; //needed for texture pegging (and TFE fix - kill
 
 int16_t       __far* texturetranslation;
 
-fixed_t  viewcos, viewsin;
+static fixed_t  viewcos, viewsin;
 
 static fixed_t  topfrac;
 static fixed_t  topstep;
