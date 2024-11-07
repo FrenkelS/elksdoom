@@ -40,6 +40,7 @@
 
 void I_InitTimer(void);
 int32_t I_GetTime(void);
+uint32_t __far* I_GetPjiffies(void);
 
 void _Noreturn I_Quit(void);
 void _Noreturn I_Error(const char *error, ...);
@@ -63,6 +64,19 @@ void I_SetScreenMode(uint16_t mode);
 	"pop di",	\
 	"pop si"	\
 	parm [ax]
+
+
+static void outp(uint16_t port, uint8_t data);
+#pragma aux outp = \
+	"out dx, al" \
+	parm [dx] [al]
+
+
+static uint8_t inp(uint16_t port);
+#pragma aux inp = \
+	"in al, dx" \
+	value [al]	\
+	parm [dx]
 
 
 void I_FinishUpdate(void);
