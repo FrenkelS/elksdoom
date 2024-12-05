@@ -39,6 +39,16 @@
 
 #define PLANEWIDTH 80
 
+
+#define PAGE_SIZE 0x0400
+
+#define PAGE0		0xa000
+#define PAGE1		(PAGE0+PAGE_SIZE)
+#define PAGE2		(PAGE1+PAGE_SIZE)
+#define PAGE3		(PAGE2+PAGE_SIZE)
+#define PAGEMINUS1	(PAGE0-PAGE_SIZE)
+
+
 #define SC_INDEX                0x3c4
 #define SC_MAPMASK              2
 #define SC_MEMMODE              4
@@ -203,13 +213,13 @@ void I_FinishUpdate(void)
 			outp(GC_INDEX + 1, inp(GC_INDEX + 1) | 1);
 
 #if defined _M_I86
-			uint8_t __far* src = (uint8_t __far*)(((uint32_t)_s_screen) - 0x04000000);
-			if ((((uint32_t)src) & 0x9c000000) == 0x9c000000)
-				src = (uint8_t __far*)(((uint32_t)src) + 0x0c000000);
+			uint8_t __far* src = D_MK_FP(D_FP_SEG(_s_screen) - PAGE_SIZE, D_FP_OFF(_s_screen));
+			if (D_FP_SEG(src) == PAGEMINUS1)
+				src = D_MK_FP(PAGE2, D_FP_OFF(src));
 #else
-			uint8_t __far* src = _s_screen - 0x04000;
-			if ((((uint32_t)src) & 0x9c000) == 0x9c000)
-				src += 0x0c000;
+			uint8_t __far* src = _s_screen - (PAGE_SIZE << 4);
+			if ((((uint32_t)src) & (PAGEMINUS1 << 4)) == (PAGEMINUS1 << 4))
+				src += (0x10000 - (PAGE_SIZE << 4));
 #endif
 			src += (SCREENHEIGHT - ST_HEIGHT) * PLANEWIDTH;
 			uint8_t __far* dest = _s_screen + (SCREENHEIGHT - ST_HEIGHT) * PLANEWIDTH;
@@ -232,14 +242,14 @@ void I_FinishUpdate(void)
 	outp(CRTC_INDEX, CRTC_STARTHIGH);
 #if defined _M_I86
 	outp(CRTC_INDEX + 1, D_FP_SEG(_s_screen) >> 4);
-	_s_screen = (uint8_t __far*)(((uint32_t)_s_screen) + 0x04000000);
-	if ((((uint32_t)_s_screen) & 0xac000000) == 0xac000000)
-		_s_screen = (uint8_t __far*)(((uint32_t)_s_screen) - 0x0c000000);
+	_s_screen = D_MK_FP(D_FP_SEG(_s_screen) + PAGE_SIZE, D_FP_OFF(_s_screen));
+	if (D_FP_SEG(_s_screen) == PAGE3)
+		_s_screen = D_MK_FP(PAGE0, D_FP_OFF(_s_screen));
 #else
 	outp(CRTC_INDEX + 1, (D_FP_SEG(_s_screen) >> 4) & 0xf0);
-	_s_screen += 0x04000;
-	if ((((uint32_t)_s_screen) & 0xac000) == 0xac000)
-		_s_screen -= 0x0c000;
+	_s_screen += (PAGE_SIZE << 4);
+	if ((((uint32_t)_s_screen) & (PAGE3 << 4)) == (PAGE3 << 4))
+		_s_screen -= (0x10000 - (PAGE_SIZE << 4));
 #endif
 }
 
@@ -760,13 +770,13 @@ static void wipe_initMelt()
 void D_Wipe(void)
 {
 #if defined _M_I86
-	frontbuffer = (uint8_t __far*)(((uint32_t)_s_screen) - 0x04000000);
-	if ((((uint32_t)frontbuffer) & 0x9c000000) == 0x9c000000)
-		frontbuffer = (uint8_t __far*)(((uint32_t)frontbuffer) + 0x0c000000);
+	frontbuffer = D_MK_FP(D_FP_SEG(_s_screen) - PAGE_SIZE, D_FP_OFF(_s_screen));
+	if (D_FP_SEG(frontbuffer) == PAGEMINUS1)
+		frontbuffer = D_MK_FP(PAGE2, D_FP_OFF(frontbuffer));
 #else
-	frontbuffer	= _s_screen - 0x04000;
-	if ((((uint32_t)frontbuffer) & 0x9c000) == 0x9c000)
-		frontbuffer += 0x0c000;
+	frontbuffer	= _s_screen - (PAGE_SIZE << 4);
+	if ((((uint32_t)frontbuffer) & (PAGEMINUS1 << 4)) == (PAGEMINUS1 << 4))
+		frontbuffer += (0x10000 - (PAGE_SIZE << 4));
 #endif
 
 	// set write mode 1
