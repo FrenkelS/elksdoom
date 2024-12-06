@@ -57,6 +57,7 @@ static boolean midstage;                 // whether we're in "mid-stage"
 
 
 static int16_t help2num;
+static int16_t backgroundnum;
 
 
 // defines for the end mission display text                     // phares
@@ -118,9 +119,8 @@ static int32_t Get_TextSpeed(void)
 //
 // killough 5/10/98: add back v1.9 demo compatibility
 //
-
-    void F_Ticker(void)
-    {
+void F_Ticker(void)
+{
 
     WI_checkForAccelerate();  // killough 3/28/98: check for acceleration
 
@@ -161,8 +161,6 @@ static int32_t Get_TextSpeed(void)
 
 static void F_TextWrite (void)
 {
-	V_DrawBackground();
-
 	int16_t font_lump_offset = W_GetNumForName(HU_FONTSTART_LUMP) - HU_FONTSTART;
 
 	// draw some of the text onto the screen
@@ -206,7 +204,10 @@ static void F_TextWrite (void)
 void F_Drawer (void)
 {
 	if (!finalestage)
+	{
+		V_DrawBackground(backgroundnum);
 		F_TextWrite ();
+	}
 	else
 		V_DrawRawFullScreen(help2num);
 }
@@ -214,5 +215,6 @@ void F_Drawer (void)
 
 void F_Init(void)
 {
-	help2num = W_GetNumForName("HELP2");
+	help2num      = W_GetNumForName("HELP2");
+	backgroundnum = W_GetNumForName("FLOOR4_8");
 }
