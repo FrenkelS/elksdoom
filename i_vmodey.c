@@ -19,7 +19,7 @@
  *  02111-1307, USA.
  *
  * DESCRIPTION:
- *      Video code for VGA Mode Y
+ *      Video code for VGA Mode Y 320x200 256 colors
  *
  *-----------------------------------------------------------------------------*/
  
@@ -66,7 +66,7 @@
 #define PEL_WRITE_ADR   0x3c8
 #define PEL_DATA        0x3c9
 
- 
+
 extern const int16_t CENTERY;
 
 
@@ -92,10 +92,12 @@ static int16_t palettelumpnum;
 void I_ReloadPalette(void)
 {
 	char lumpName[9] = "PLAYPAL0";
+
 	if (_g_gamma == 0)
 		lumpName[7] = 0;
 	else
 		lumpName[7] = '0' + _g_gamma;
+
 	palettelumpnum = W_GetNumForName(lumpName);
 }
 
@@ -155,7 +157,7 @@ void I_InitGraphicsHardwareSpecificCode(void)
 	I_UploadNewPalette(0);
 
 	__djgpp_nearptr_enable();
-	_s_screen = D_MK_FP(0xa400, ((SCREENWIDTH_VGA - SCREENWIDTH) / 2) / 4 + (((SCREENHEIGHT_VGA - SCREENHEIGHT) / 2) * SCREENWIDTH_VGA) / 4 + __djgpp_conventional_base);
+	_s_screen = D_MK_FP(PAGE1, ((PLANEWIDTH - (SCREENWIDTH / 4)) / 2) + ((SCREENHEIGHT_VGA - SCREENHEIGHT) / 2) * PLANEWIDTH + __djgpp_conventional_base);
 
 	outp(SC_INDEX, SC_MEMMODE);
 	outp(SC_INDEX + 1, (inp(SC_INDEX + 1) & ~8) | 4);
@@ -169,7 +171,7 @@ void I_InitGraphicsHardwareSpecificCode(void)
 	outp(SC_INDEX, SC_MAPMASK);
 	outp(SC_INDEX + 1, 15);
 
-	_fmemset(D_MK_FP(0xa000, 0 + __djgpp_conventional_base), 0, 0xffff);
+	_fmemset(D_MK_FP(PAGE0, 0 + __djgpp_conventional_base), 0, 0xffff);
 
 	outp(CRTC_INDEX, CRTC_UNDERLINE);
 	outp(CRTC_INDEX + 1,inp(CRTC_INDEX + 1) & ~0x40);
@@ -478,31 +480,66 @@ void V_DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color)
 }
 
 
-void V_DrawBackground(int16_t backgroundnum)
-{
-	const byte __far* src = W_GetLumpByNum(backgroundnum);
+static int16_t cachedLumpNum;
 
-	for (int16_t plane = 0; plane < 4; plane++)
+
+static void V_Blit(int16_t num, uint16_t offset, int16_t height)
+{
+	if (cachedLumpNum == num)
 	{
-		outp(SC_INDEX + 1, 1 << plane);
-		for (int16_t y = 0; y < SCREENHEIGHT; y++)
+		// set write mode 1
+		outp(GC_INDEX, GC_MODE);
+		outp(GC_INDEX + 1, inp(GC_INDEX + 1) | 1);
+
+		uint8_t __far* src  = D_MK_FP(PAGE3, 0 + __djgpp_conventional_base);
+		uint8_t __far* dest = _s_screen + (offset / SCREENWIDTH) * PLANEWIDTH;
+		for (int16_t y = 0; y < height; y++)
 		{
-			uint8_t __far* dest = _s_screen + y * PLANEWIDTH;
 			for (int16_t x = 0; x < SCREENWIDTH / 4; x++)
 			{
-				*dest++ = src[(y & 63) * 64 + (((x * 4) + plane) & 63)];
+				volatile uint8_t loadLatches = src[y * PLANEWIDTH + x];
+				dest[y * PLANEWIDTH + x] = 0;
 			}
 		}
-	}
-	outp(SC_INDEX + 1, 15);
 
-	Z_ChangeTagToCache(src);
+		// set write mode 0
+		outp(GC_INDEX, GC_MODE);
+		outp(GC_INDEX + 1, inp(GC_INDEX + 1) & ~1);
+	}
+}
+
+
+void V_DrawBackground(int16_t backgroundnum)
+{
+	if (cachedLumpNum != backgroundnum)
+	{
+		const uint8_t __far* lump = W_GetLumpByNum(backgroundnum);
+
+		for (int16_t plane = 0; plane < 4; plane++)
+		{
+			outp(SC_INDEX + 1, 1 << plane);
+			for (int16_t y = 0; y < SCREENHEIGHT; y++)
+			{
+				uint8_t __far* dest = D_MK_FP(PAGE3, y * PLANEWIDTH + __djgpp_conventional_base);
+				for (int16_t x = 0; x < SCREENWIDTH / 4; x++)
+				{
+					*dest++ = lump[(y & 63) * 64 + (((x * 4) + plane) & 63)];
+				}
+			}
+		}
+		outp(SC_INDEX + 1, 15);
+
+		Z_ChangeTagToCache(lump);
+
+		cachedLumpNum = backgroundnum;
+	}
+
+	V_Blit(backgroundnum, 0, SCREENHEIGHT);
 }
 
 
 void V_DrawRaw(int16_t num, uint16_t offset)
 {
-	static int16_t cachedLumpNum;
 	static int16_t cachedLumpHeight;
 
 	if (cachedLumpNum != num)
@@ -518,7 +555,7 @@ void V_DrawRaw(int16_t num, uint16_t offset)
 				outp(SC_INDEX + 1, 1 << plane);
 				for (int16_t y = 0; y < cachedLumpHeight; y++)
 				{
-					uint8_t __far* dest = D_MK_FP(0xac00, y * PLANEWIDTH + __djgpp_conventional_base);
+					uint8_t __far* dest = D_MK_FP(PAGE3, y * PLANEWIDTH + __djgpp_conventional_base);
 					for (int16_t x = 0; x < SCREENWIDTH / 4; x++)
 					{
 						*dest++ = lump[y * SCREENWIDTH + (x * 4) + plane];
@@ -532,27 +569,7 @@ void V_DrawRaw(int16_t num, uint16_t offset)
 		}
 	}
 
-	if (cachedLumpNum == num)
-	{
-		// set write mode 1
-		outp(GC_INDEX, GC_MODE);
-		outp(GC_INDEX + 1, inp(GC_INDEX + 1) | 1);
-
-		uint8_t __far* src  = D_MK_FP(0xac00, 0 + __djgpp_conventional_base);
-		uint8_t __far* dest = _s_screen + (offset / SCREENWIDTH) * PLANEWIDTH;
-		for (int16_t y = 0; y < cachedLumpHeight; y++)
-		{
-			for (int16_t x = 0; x < SCREENWIDTH / 4; x++)
-			{
-				volatile uint8_t loadLatches = src[y * PLANEWIDTH + x];
-				dest[y * PLANEWIDTH + x] = 0;
-			}
-		}
-
-		// set write mode 0
-		outp(GC_INDEX, GC_MODE);
-		outp(GC_INDEX + 1, inp(GC_INDEX + 1) & ~1);
-	}
+	V_Blit(num, offset, cachedLumpHeight);
 }
 
 
