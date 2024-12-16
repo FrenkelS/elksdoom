@@ -32,6 +32,8 @@
 
 #define ANGLETOSKYSHIFT         22
 
+#define COLEXTRABITS (8 - 1)
+
 
 const int16_t skyflatnum = -2;
 static int16_t skypatchnum;
@@ -68,7 +70,7 @@ void R_DrawSky(draw_column_vars_t *dcvars)
 		if (!(dcvars->colormap = fixedcolormap))
 			dcvars->colormap = fullcolormap;
 
-		dcvars->iscale = (FRACUNIT * SCREENHEIGHT_VGA) / (VIEWWINDOWHEIGHT + 16);
+		dcvars->fracstep = ((FRACUNIT * SCREENHEIGHT_VGA) / (VIEWWINDOWHEIGHT + 16)) >> COLEXTRABITS;
 
 		int16_t xc = viewangle >> FRACBITS;
 		xc += xtoviewangleTable[dcvars->x];
