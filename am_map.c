@@ -59,9 +59,8 @@
 enum automapmode_e automapmode; // Mode that the automap is in
 
 
-static const uint8_t mapcolor_back = 247;    // map background
-static const uint8_t mapcolor_wall = 23;    // normal 1s wall color
-static const uint8_t mapcolor_fchg = 55;    // line at floor height change color
+static const uint8_t mapcolor_wall =  23;    // normal 1s wall color
+static const uint8_t mapcolor_fchg =  55;    // line at floor height change color
 static const uint8_t mapcolor_cchg = 215;    // line at ceiling height change color
 static const uint8_t mapcolor_clsd = 208;    // line at sector with floor=ceiling color
 static const uint8_t mapcolor_rdor = 175;    // red door color  (diff from keys to allow option)
@@ -758,9 +757,6 @@ static void AM_drawMline(mline_t* ml, uint8_t color)
 {
     fline_t fl;
 
-    if (color==mapcolor_back) // jff 4/3/98 if color is 247 (xparent), use black
-        color=0;
-
     if (AM_clipMline(ml, &fl))
         V_DrawLine(fl.a.x, fl.a.y, fl.b.x, fl.b.y, color); // draws it on frame buffer using fb coords
 }
@@ -999,7 +995,7 @@ void AM_Drawer (void)
     if (!(automapmode & am_active)) return;
 
     if (!(automapmode & am_overlay)) // cph - If not overlay mode, clear background for the automap
-        V_FillRect(mapcolor_back); //jff 1/5/98 background default color
+        V_ClearViewWindow();
 
     AM_drawWalls();
     AM_drawPlayers();
