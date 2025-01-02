@@ -10,7 +10,7 @@
  *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
  *  Copyright 2005, 2006 by
  *  Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
- *  Copyright 2023 by
+ *  Copyright 2023, 2024 by
  *  Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
@@ -51,6 +51,9 @@ void I_ShutdownSound(void);
 
 // Starts a sound in a particular sound channel.
 int16_t I_StartSound(sfxenum_t id, int16_t channel, int16_t vol, int16_t sep);
+
+
+void I_UpdateSound(void);
 
 
 //

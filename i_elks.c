@@ -34,6 +34,7 @@
 #include "doomtype.h"
 #include "compiler.h"
 #include "d_main.h"
+#include "i_sound.h"
 #include "i_system.h"
 #include "globdata.h"
 
@@ -191,6 +192,8 @@ static void I_ShutdownKeyboard(void)
 
 void I_StartTic(void)
 {
+	I_UpdateSound();
+
 	//
 	// process keyboard events
 	//
@@ -339,6 +342,12 @@ int32_t I_GetTime(void)
 	uint32_t tick10ms = *pjiffies; /* read kernel 10ms timer directly */
 	//return tick10ms * TICRATE / 100;
 	return (tick10ms * TICRATE * 10) / 1024;
+}
+
+
+uint32_t __far* I_GetPjiffies(void)
+{
+	return pjiffies;
 }
 
 
