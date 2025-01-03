@@ -372,25 +372,23 @@ void R_DrawColumnFlat(uint8_t color, const draw_column_vars_t *dcvars)
 
 	while (l--)
 	{
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
-		*dest = color; dest += PLANEWIDTH;
+		dest[PLANEWIDTH *  0] = color;
+		dest[PLANEWIDTH *  1] = color;
+		dest[PLANEWIDTH *  2] = color;
+		dest[PLANEWIDTH *  3] = color;
+		dest[PLANEWIDTH *  4] = color;
+		dest[PLANEWIDTH *  5] = color;
+		dest[PLANEWIDTH *  6] = color;
+		dest[PLANEWIDTH *  7] = color;
+		dest[PLANEWIDTH *  8] = color;
+		dest[PLANEWIDTH *  9] = color;
+		dest[PLANEWIDTH * 10] = color;
+		dest[PLANEWIDTH * 11] = color;
+		dest[PLANEWIDTH * 12] = color;
+		dest[PLANEWIDTH * 13] = color;
+		dest[PLANEWIDTH * 14] = color;
+		dest[PLANEWIDTH * 15] = color;
+		dest += PLANEWIDTH * 16;
 	}
 
 	switch (count & 15)
