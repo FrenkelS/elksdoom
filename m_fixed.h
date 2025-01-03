@@ -10,7 +10,7 @@
  *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
  *  Copyright 2005, 2006 by
  *  Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
- *  Copyright 2023, 2024 by
+ *  Copyright 2023-2025 by
  *  Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
@@ -72,9 +72,15 @@ fixed_t CONSTFUNC FixedMulAngle(fixed_t a, fixed_t b);
 //Approx Reciprocal of v
 // Divide FFFFFFFFh by a number.
 
+#if defined C_ONLY
 #define FixedReciprocal(v)      (0xffffffffu/(v))
 #define FixedReciprocalBig(v)   (0xffffffffu/(v))
 #define FixedReciprocalSmall(v) (0xffffffffu/(uint16_t)(v))
+#else
+int32_t FixedReciprocal(int32_t v);
+int16_t FixedReciprocalBig(int32_t v);
+int32_t FixedReciprocalSmall(int16_t v);
+#endif
 
 
 /*

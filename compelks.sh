@@ -4,6 +4,7 @@ CCOPTSS="-os             -bt=none -0 -zq -s -mm -wx -zastd=c99 -zls"
 CCOPTST="-oaxet -oh -ol+ -bt=none -0 -zq -s -mm -wx -zastd=c99 -zls"
 
 nasm i_vmodya.asm -f obj -DCPU=i8088
+nasm m_fixed.asm  -f obj
 
 wcc $CCOPTSS am_map.c   -fo=am_map.obj
 wcc $CCOPTSS d_items.c  -fo=d_items.obj
@@ -52,7 +53,7 @@ wcc $CCOPTSS z_zone.c   -fo=z_zone.obj
 wcc $CCOPTST i_vmodey.c -fo=i_vmodey.obj
 wcc $CCOPTST r_draw.c   -fo=r_draw.obj
 
-owcc -bos2 -s -Wl,option -Wl,start=_start -Wl,alias -Wl,source=_source -Wl,alias -Wl,nearcolormap=_nearcolormap -Wl,alias -Wl,dest=_dest -Wl,alias -Wl,R_DrawColumn2_=R_DrawColumn2 -Wl,option -Wl,dosseg -Wl,option -Wl,nodefaultlibs -Wl,option -Wl,stack=0x1000 -Wl,option -Wl,heapsize=0x1000 -Wl,library -Wl,$LIBC -o elksdoom.os2 am_map.obj d_items.obj d_main.obj f_finale.obj g_game.obj hu_stuff.obj i_audio.obj i_main.obj i_elks.obj i_vmodey.obj i_vmodya.obj info.obj m_cheat.obj m_menu.obj m_random.obj p_doors.obj p_enemy.obj p_floor.obj p_inter.obj p_lights.obj p_map.obj p_maputl.obj p_mobj.obj p_plats.obj p_pspr.obj p_setup.obj p_sight.obj p_spec.obj p_switch.obj p_telept.obj p_tick.obj p_user.obj r_data.obj r_draw.obj r_plane.obj r_sky.obj r_things.obj s_sound.obj sounds.obj st_stuff.obj tables.obj v_video.obj w_wad.obj wi_stuff.obj z_bmallo.obj z_zone.obj
+owcc -bos2 -s -Wl,option -Wl,start=_start -Wl,alias -Wl,source=_source -Wl,alias -Wl,nearcolormap=_nearcolormap -Wl,alias -Wl,dest=_dest -Wl,alias -Wl,R_DrawColumn2_=R_DrawColumn2 -Wl,alias -Wl,FixedReciprocal_=FixedReciprocal -Wl,alias -Wl,FixedReciprocalBig_=FixedReciprocalBig -Wl,alias -Wl,FixedReciprocalSmall_=FixedReciprocalSmall -Wl,option -Wl,dosseg -Wl,option -Wl,nodefaultlibs -Wl,option -Wl,stack=0x1000 -Wl,option -Wl,heapsize=0x1000 -Wl,library -Wl,$LIBC -o elksdoom.os2 am_map.obj d_items.obj d_main.obj f_finale.obj g_game.obj hu_stuff.obj i_audio.obj i_main.obj i_elks.obj i_vmodey.obj i_vmodya.obj info.obj m_cheat.obj m_fixed.obj m_menu.obj m_random.obj p_doors.obj p_enemy.obj p_floor.obj p_inter.obj p_lights.obj p_map.obj p_maputl.obj p_mobj.obj p_plats.obj p_pspr.obj p_setup.obj p_sight.obj p_spec.obj p_switch.obj p_telept.obj p_tick.obj p_user.obj r_data.obj r_draw.obj r_plane.obj r_sky.obj r_things.obj s_sound.obj sounds.obj st_stuff.obj tables.obj v_video.obj w_wad.obj wi_stuff.obj z_bmallo.obj z_zone.obj
 
 rm *.obj
 rm *.err
