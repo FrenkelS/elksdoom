@@ -1,7 +1,7 @@
 /*-----------------------------------------------------------------------------
  *
  *
- *  Copyright (C) 2023-2024 Frenkel Smeijers
+ *  Copyright (C) 2023-2025 Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -368,10 +368,48 @@ void R_DrawColumnFlat(uint8_t color, const draw_column_vars_t *dcvars)
 
 	uint8_t __far* dest = _s_screen + (dcvars->yl * PLANEWIDTH) + dcvars->x;
 
-	while (count--)
+	int16_t l = count >> 4;
+
+	while (l--)
 	{
-		*dest = color;
-		dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+		*dest = color; dest += PLANEWIDTH;
+	}
+
+	switch (count & 15)
+	{
+		case 15: dest[PLANEWIDTH * 14] = color;
+		case 14: dest[PLANEWIDTH * 13] = color;
+		case 13: dest[PLANEWIDTH * 12] = color;
+		case 12: dest[PLANEWIDTH * 11] = color;
+		case 11: dest[PLANEWIDTH * 10] = color;
+		case 10: dest[PLANEWIDTH *  9] = color;
+		case  9: dest[PLANEWIDTH *  8] = color;
+		case  8: dest[PLANEWIDTH *  7] = color;
+		case  7: dest[PLANEWIDTH *  6] = color;
+		case  6: dest[PLANEWIDTH *  5] = color;
+		case  5: dest[PLANEWIDTH *  4] = color;
+		case  4: dest[PLANEWIDTH *  3] = color;
+		case  3: dest[PLANEWIDTH *  2] = color;
+		case  2: dest[PLANEWIDTH *  1] = color;
+		case  1: dest[PLANEWIDTH *  0] = color;
 	}
 }
 
