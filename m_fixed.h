@@ -55,7 +55,6 @@ typedef int32_t fixed_t;
  *
  */
 
-int16_t  abs(int16_t v);
 int32_t labs(int32_t v);
 
 #define D_abs labs

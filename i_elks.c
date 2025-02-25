@@ -48,12 +48,6 @@ static boolean isGraphicsModeSet = false;
 // Functions that are available in DOS, but not in ELKS
 //
 
-int16_t abs(int16_t v)
-{
-	return v < 0 ? -v : v;
-}
-
-
 int32_t labs(int32_t v)
 {
 	return v < 0 ? -v : v;
@@ -86,18 +80,6 @@ void __far* _fmemcpy(void __far* destination, const void __far* source, size_t n
 
 	for (size_t i = 0; i < num; i++)
 		*d++ = *s++;
-
-	return NULL;
-}
-
-
-void __far* _fmemset(void __far* str, int c, size_t n)
-{
-	uint8_t __far* d = (uint8_t __far*)str;
-	uint8_t b = c;
-
-	for (size_t i = 0; i < n; i++)
-		*d++ = b;
 
 	return NULL;
 }
