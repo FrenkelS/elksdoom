@@ -10,7 +10,7 @@
  *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
  *  Copyright 2005, 2006 by
  *  Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
- *  Copyright 2023, 2024 by
+ *  Copyright 2023-2025 by
  *  Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
@@ -151,26 +151,44 @@ static void P_MakeDivline(const line_t __far* li, divline_t *dl)
 }
 
 
-union int64_u {
-	int64_t ll;
-	PACKEDATTR_PRE struct {
-		int16_t wl;
-		fixed_t dw;
-		int16_t wh;
-	} PACKEDATTR_POST s;
-};
-
-typedef char assertInt64_uSize[sizeof(union int64_u) == 8 ? 1 : -1];
-
-
 static inline fixed_t CONSTFUNC FixedDiv(fixed_t a, fixed_t b)
 {
-	union int64_u r;
-	// r.ll = (int64_t)a << FRACBITS;
-	r.s.wl = 0;
-	r.s.dw = a;
-	r.s.wh = (a < 0) ? 0xffff : 0x0000;
-	return r.ll / b;
+	if (a < 0)
+	{
+		a = -a;
+		b = -b;
+	}
+
+	uint16_t ibit = 1;
+	while (b < a)
+	{
+		b    <<= 1;
+		ibit <<= 1;
+	}
+
+	int16_t ch = 0;
+	for (; ibit != 0; ibit >>= 1)
+	{
+		if (a >= b)
+		{
+			a  -= b;
+			ch |= ibit;
+		}
+		a <<= 1;
+	}
+
+	uint16_t cl = 0;
+	for (uint16_t fbit = 0x8000; fbit != 0; fbit >>= 1)
+	{
+		if (a >= b)
+		{
+			a  -= b;
+			cl |= fbit;
+		}
+		a <<= 1;
+	}
+
+	return (((fixed_t)ch) << FRACBITS) | cl;
 }
 
 
