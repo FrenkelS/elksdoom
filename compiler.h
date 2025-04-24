@@ -36,8 +36,8 @@ typedef uint16_t segment_t;
 #define SIZE_OF_SEGMENT_T 2
 
 void __far* _fmemchr(const void __far* str, int c, size_t n);
-void __far* _fmemcpy(void __far* destination, const void __far* source, size_t num);
-#define _fmemset(buf,c,l) fmemset(buf,c,l)
+#define _fmemcpy fmemcpy
+#define _fmemset fmemset
 char __far* _fstrcpy(char __far* destination, const char __far* source);
 size_t _fstrlen(const char __far* str);
 

@@ -73,18 +73,6 @@ void __far* _fmemchr(const void __far* str, int c, size_t n)
 }
 
 
-void __far* _fmemcpy(void __far* destination, const void __far* source, size_t num)
-{
-	uint8_t __far* s = (uint8_t __far*)source;
-	uint8_t __far* d = (uint8_t __far*)destination;
-
-	for (size_t i = 0; i < num; i++)
-		*d++ = *s++;
-
-	return NULL;
-}
-
-
 char __far* _fstrcpy(char __far* destination, const char __far* source)
 {
 	char __far* s = (char __far*)source;
