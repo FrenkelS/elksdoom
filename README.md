@@ -25,23 +25,23 @@ Download ELKSDOOM [here](https://github.com/FrenkelS/elksdoom/releases).
 |Quit to ELKS           |Ctrl + Q                                                  |
 
 ## Cheats:
-|Code      |Effects                  |
-|----------|-------------------------|
-|IDCHOPPERS|Chainsaw                 |
-|IDDQD     |God mode                 |
-|IDKFA     |Ammo & Keys              |
-|IDKA      |Ammo                     |
-|IDSPISPOPD|No Clipping              |
-|IDBEHOLDV |Invincibility            |
-|IDBEHOLDS |Berserk                  |
-|IDBEHOLDI |Invisibility             |
-|IDBEHOLDR |Radiation shielding suit |
-|IDBEHOLDA |Auto-map                 |
-|IDBEHOLDL |Lite-Amp Goggles         |
-|IDCLEV    |Exit Level               |
-|IDEND     |Show end text            |
-|IDROCKET  |Enemy Rockets (GoldenEye)|
-|IDRATE    |Toggle FPS counter       |
+|Code      |Effects                  |Notes                           |
+|----------|-------------------------|--------------------------------|
+|IDCHOPPERS|Chainsaw                 |                                |
+|IDDQD     |God mode                 |                                |
+|IDKFA     |Ammo & Keys              |                                |
+|IDKA      |Ammo                     |                                |
+|IDSPISPOPD|No Clipping              |                                |
+|IDBEHOLDV |Invincibility            |                                |
+|IDBEHOLDS |Berserk                  |                                |
+|IDBEHOLDI |Invisibility             |                                |
+|IDBEHOLDR |Radiation shielding suit |                                |
+|IDBEHOLDA |Auto-map                 |                                |
+|IDBEHOLDL |Lite-Amp Goggles         |                                |
+|IDCLEV    |Exit Level               |                                |
+|IDEND     |Show end text            |                                |
+|IDROCKET  |Enemy Rockets            |(GoldenEye)                     |
+|IDRATE    |Toggle FPS counter       |Divide by 10 to get the real FPS|
 
 ## Command line arguments:
 |Command line argument|Effect       |
