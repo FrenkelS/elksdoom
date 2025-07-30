@@ -4,7 +4,7 @@
 // $Id:$
 //
 // Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 2023-2024 by Frenkel Smeijers
+// Copyright (C) 2023-2025 by Frenkel Smeijers
 //
 // This source is available for distribution and/or modification
 // only under the terms of the DOOM Source Code License as
@@ -253,7 +253,7 @@ static void Z_ChangeTag(const void __far* ptr, uint_fast8_t tag)
 {
 #if defined RANGECHECK
 	if ((((uint32_t) ptr) & (PARAGRAPH_SIZE - 1)) != 0)
-		I_Error("Z_ChangeTag: pointer is not aligned: 0x%lx %s %i", ptr, f, l);
+		I_Error("Z_ChangeTag: pointer is not aligned: 0x%lx", ptr);
 #endif
 
 #if defined _M_I86
@@ -591,12 +591,12 @@ void Z_CheckHeap (void)
 #endif
 
         if (pointerToSegment(block) + (block->size / PARAGRAPH_SIZE) != block->next)
-            I_Error ("Z_CheckHeap: block size does not touch the next block\n");
+            I_Error ("Z_CheckHeap: block size does not touch the next block");
 
         if (segmentToPointer(block->next)->prev != pointerToSegment(block))
-            I_Error ("Z_CheckHeap: next block doesn't have proper back link\n");
+            I_Error ("Z_CheckHeap: next block doesn't have proper back link");
 
         if (!block->user && !segmentToPointer(block->next)->user)
-            I_Error ("Z_CheckHeap: two consecutive free blocks\n");
+            I_Error ("Z_CheckHeap: two consecutive free blocks");
     }
 }
