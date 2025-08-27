@@ -115,6 +115,40 @@ void I_InitGraphics(void)
 
 //**************************************************************************************
 //
+// Returns time in 1/35th second tics.
+//
+
+static uint32_t __far* pjiffies;
+
+
+int32_t I_GetTime(void)
+{
+	uint32_t tick10ms = *pjiffies; /* read kernel 10ms timer directly */
+	//return tick10ms * TICRATE / 100;
+	return (tick10ms * TICRATE * 10) / 1024;
+}
+
+
+void I_InitTimer(void)
+{
+	int16_t fd = open("/dev/kmem", O_RDONLY);
+	if (fd < 0) {
+		I_Error("No kmem");
+	}
+
+	uint16_t kernel_ds, offset;
+	if (ioctl(fd, MEM_GETDS,       &kernel_ds) < 0
+	 || ioctl(fd, MEM_GETJIFFADDR, &offset   ) < 0) {
+		I_Error("No mem ioctl");
+	}
+	close(fd);
+
+	pjiffies = D_MK_FP(kernel_ds, offset);
+}
+
+
+//**************************************************************************************
+//
 // Keyboard code
 //
 
@@ -164,6 +198,8 @@ void I_StartTic(void)
 	//
 	// process keyboard events
 	//
+
+	static uint32_t gamekeytimestamps[NUMKEYS];
 
 	event_t ev;
 	ev.type = ev_keydown;
@@ -289,44 +325,48 @@ void I_StartTic(void)
 		}
 
 		if (ev.data1 != -1)
+		{
+			if (ev.data1 == 'a' || ev.data1 == 'h')
+			{
+				D_PostEvent(&ev);
+				ev.data1 = KEYD_LEFT;
+			}
+			else if (ev.data1 == 's' || ev.data1 == 'j')
+			{
+				D_PostEvent(&ev);
+				ev.data1 = KEYD_DOWN;
+			}
+			else if (ev.data1 == 'd' || ev.data1 == 'k')
+			{
+				D_PostEvent(&ev);
+				ev.data1 = KEYD_UP;
+			}
+			else if (ev.data1 == 'f' || ev.data1 == 'l')
+			{
+				D_PostEvent(&ev);
+				ev.data1 = KEYD_RIGHT;
+			}
+
+			if (ev.data1 < NUMKEYS)
+				gamekeytimestamps[ev.data1] = *pjiffies;
+
 			D_PostEvent(&ev);
+		}
 
 		r = read(STDIN_FILENO, &k, 1);
 	}
-}
 
-
-//**************************************************************************************
-//
-// Returns time in 1/35th second tics.
-//
-
-static uint32_t __far* pjiffies;
-
-
-int32_t I_GetTime(void)
-{
-	uint32_t tick10ms = *pjiffies; /* read kernel 10ms timer directly */
-	//return tick10ms * TICRATE / 100;
-	return (tick10ms * TICRATE * 10) / 1024;
-}
-
-
-void I_InitTimer(void)
-{
-	int16_t fd = open("/dev/kmem", O_RDONLY);
-	if (fd < 0) {
-		I_Error("No kmem");
+	for (int16_t i = 0; i < NUMKEYS; i++)
+	{
+		if (gamekeytimestamps[i] != 0 && *pjiffies - gamekeytimestamps[i] > (42 * 100 + 999) / 1000)
+		{
+			gamekeytimestamps[i] = 0;
+			event_t ev;
+			ev.type  = ev_keyup;
+			ev.data1 = i;
+			D_PostEvent(&ev);
+		}
 	}
-
-	uint16_t kernel_ds, offset;
-	if (ioctl(fd, MEM_GETDS,       &kernel_ds) < 0
-	 || ioctl(fd, MEM_GETJIFFADDR, &offset   ) < 0) {
-		I_Error("No mem ioctl");
-	}
-	close(fd);
-
-	pjiffies = D_MK_FP(kernel_ds, offset);
 }
 
 

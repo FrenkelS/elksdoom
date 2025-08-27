@@ -10,7 +10,7 @@
  *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
  *  Copyright 2005, 2006 by
  *  Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
- *  Copyright 2023, 2024 by
+ *  Copyright 2023-2025 by
  *  Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
@@ -812,35 +812,16 @@ static void M_InitDefaults(void)
 
 boolean M_Responder (event_t* ev)
 {
+    int16_t    ch;
+
+    // Mouse input processing removed
+
     // Process keyboard input
 
-    if (ev->type != ev_keydown)
+    if (ev->type == ev_keydown)
+        ch = ev->data1;
+    else
         return false; // we can't use the event here
-
-    int16_t ch;
-
-    switch (ev->data1)
-    {
-        case 'a':
-        case 'h':
-            ch = KEYD_LEFT;
-            break;
-        case 's':
-        case 'j':
-            ch = KEYD_DOWN;
-            break;
-        case 'd':
-        case 'k':
-            ch = KEYD_UP;
-            break;
-        case 'f':
-        case 'l':
-            ch = KEYD_RIGHT;
-            break;
-        default:
-            ch = ev->data1;
-            break;
-    }
 
     // Take care of any messages that need input
 

@@ -97,7 +97,7 @@ wbstartstruct_t _g_wminfo;               // parms for world map / intermission
 static int32_t             totalleveltimes;      // CPhipps - total time for all completed levels
 
 
-static int8_t gamekeydown[NUMKEYS];
+static boolean gamekeydown[NUMKEYS];
 
 static skill_t d_skill;
 
@@ -303,12 +303,6 @@ void G_BuildTiccmd(void)
 
     netcmd.forwardmove += fudgef((int8_t)forward);
     netcmd.sidemove += side;
-
-    for (int16_t i = 0; i < NUMKEYS; i++)
-    {
-        if (gamekeydown[i] > 0)
-            gamekeydown[i]--;
-    }
 }
 
 
@@ -343,9 +337,8 @@ static void G_DoLoadLevel (void)
     // clear cmd building stuff
     memset(gamekeydown, 0, sizeof(gamekeydown));
 
-    // killough 5/13/98: in case netdemo has consoleplayer other than green
-    ST_Start();
-    HU_Start();
+    ST_Start(); // wake up the status bar
+    HU_Start(); // wake up the heads up text
 }
 
 
@@ -353,8 +346,6 @@ static void G_DoLoadLevel (void)
 // G_Responder
 // Get info needed to make ticcmd_ts for the players.
 //
-
-#define REPEATRATE 8
 
 void G_Responder (event_t* ev)
 {
@@ -386,27 +377,19 @@ void G_Responder (event_t* ev)
         return;
     }
 
-    switch (ev->data1)
+    switch (ev->type)
     {
-        case 'a':
-        case 'h':
-            gamekeydown[KEYD_LEFT] = REPEATRATE;
-            break;
-        case 's':
-        case 'j':
-            gamekeydown[KEYD_DOWN] = REPEATRATE;
-            break;
-        case 'd':
-        case 'k':
-            gamekeydown[KEYD_UP] = REPEATRATE;
-            break;
-        case 'f':
-        case 'l':
-            gamekeydown[KEYD_RIGHT] = REPEATRATE;
-            break;
-        default:
+        case ev_keydown:
             if (ev->data1 < NUMKEYS)
-                gamekeydown[ev->data1] = REPEATRATE;
+                gamekeydown[ev->data1] = true;
+            return;    // eat key down events
+
+        case ev_keyup:
+            if (ev->data1 < NUMKEYS)
+                gamekeydown[ev->data1] = false;
+            return;   // always let key up events filter down
+
+        default:
             break;
     }
 }

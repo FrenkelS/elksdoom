@@ -76,7 +76,7 @@ static boolean cht_CheckCheat(cheatseq_t *cht, char data1)
 
 boolean C_Responder (event_t *ev)
 {
-	if (ev->type == ev_keydown)
+	if (ev->type == ev_keydown && ev->data1 >= NUMKEYS)
 	{
 		for (int16_t i = 0; i < num_cheats; i++)
 		{
