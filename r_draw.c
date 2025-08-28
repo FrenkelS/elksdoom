@@ -35,6 +35,7 @@
  *
  *-----------------------------------------------------------------------------*/
 
+#include <endian.h>
 #include <stdint.h>
 
 #ifdef HAVE_CONFIG_H
@@ -110,7 +111,13 @@ static int8_t viewangletox(int16_t va)
 
 
 static const angle_t tantoangleTable[2049];
+
+#if BYTE_ORDER == LITTLE_ENDIAN
 static const angle16_t* tantoangle16Table = ((angle16_t*)&tantoangleTable[0]) + 1;
+#endif
+#if BYTE_ORDER == BIG_ENDIAN
+static const angle16_t* tantoangle16Table = ((angle16_t*)&tantoangleTable[0]);
+#endif
 
 #define tantoangle(t) tantoangleTable[t]
 #define tantoangle16(t) tantoangle16Table[(t)*2]
