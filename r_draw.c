@@ -10,7 +10,7 @@
  *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
  *  Copyright 2005, 2006 by
  *  Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
- *  Copyright 2023-2025 by
+ *  Copyright 2023-2026 by
  *  Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
@@ -272,6 +272,7 @@ static const uint16_t PSPRITEYFRACSTEP = (FRACUNIT * SCREENHEIGHT_VGA / (VIEWWIN
 static const angle16_t clipangle = 0x2008; // = xtoviewangleTable[0]
 
 
+#if defined C_ONLY
 #if defined __WATCOMC__
 //
 #else
@@ -296,8 +297,10 @@ fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
 		return (a * bhw) + (ll >> FRACBITS) + hl;
 	}
 }
+#endif
 
 
+#if defined C_ONLY
 inline static fixed_t CONSTFUNC FixedMul3232(fixed_t a, fixed_t b)
 {
 	uint16_t alw = a;
@@ -309,6 +312,9 @@ inline static fixed_t CONSTFUNC FixedMul3232(fixed_t a, fixed_t b)
 	 int32_t hl = ( int32_t) ahw * blw;
 	return (a * bhw) + (ll >> FRACBITS) + hl;
 }
+#else
+fixed_t FixedMul3232(fixed_t a, fixed_t b);
+#endif
 
 
 //
@@ -324,9 +330,9 @@ fixed_t CONSTFUNC FixedMulAngle(fixed_t a, fixed_t b)
 {
 	uint16_t alw = a;
 	 int16_t ahw = a >> FRACBITS;
-	uint16_t blw = b;
+    uint16_t blw = b;
 
-	uint32_t ll = (uint32_t) alw * blw;
+    uint32_t ll = (uint32_t) alw * blw;
 	 int32_t hl = ( int32_t) ahw * blw;
 	fixed_t r = (ll >> FRACBITS) + hl;
 
@@ -370,7 +376,7 @@ fixed_t CONSTFUNC FixedApproxDiv(fixed_t a, fixed_t b)
 // Returns side 0 (front) or 1 (back).
 //
 
-static PUREFUNC int8_t R_PointOnSide(fixed_t x, fixed_t y, const mapnode_t __far* node)
+static PUREFUNC int16_t R_PointOnSide(fixed_t x, fixed_t y, const mapnode_t __far* node)
 {
 	int16_t ix = x >> FRACBITS;
 
@@ -2463,11 +2469,11 @@ static boolean R_RenderBspSubsector(int16_t bspnum)
 static void R_RenderBSPNode(int16_t bspnum)
 {
     static int16_t stack_bsp[MAX_BSP_DEPTH];
-    static int8_t  stack_side[MAX_BSP_DEPTH];
+    static int16_t stack_side[MAX_BSP_DEPTH];
     int16_t sp = 0;
 
     const mapnode_t __far* bsp;
-    int8_t side;
+    int16_t side;
 
     while (true)
     {
@@ -2532,7 +2538,7 @@ static void R_RenderBSPNode(int16_t bspnum)
 //
 // decide which side the view point is on
 //
-	int8_t side = R_PointOnSide(viewx, viewy, bsp);
+	int16_t side = R_PointOnSide(viewx, viewy, bsp);
 
 	R_RenderBSPNode(bsp->children[side]); // recursively divide front space
 
