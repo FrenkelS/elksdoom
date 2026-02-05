@@ -125,12 +125,19 @@ typedef struct
 
 void W_Init(void)
 {
-	printf("\tadding elksdoom.wad\n");
-	printf("\tshareware version.\n");
-
 	fileWAD = fopen("elksdoom.wad", "rb");
 	if (fileWAD == NULL)
-		I_Error("Can't open elksdoom.wad.");
+	{
+		fileWAD = fopen("/lib/elksdoom.wad", "rb");
+		if (fileWAD == NULL)
+			I_Error("Can't open elksdoom.wad");
+		else
+			printf("\tadding /lib/elksdoom.wad\n");
+	}
+	else
+		printf("\tadding elksdoom.wad\n");
+
+	printf("\tshareware version.\n");
 
 	wadinfo_t header;
 	W_ReadDataFromFile(&header, 0, sizeof(header));
