@@ -1,7 +1,7 @@
 /*-----------------------------------------------------------------------------
  *
  *
- *  Copyright (C) 2024-2025 Frenkel Smeijers
+ *  Copyright (C) 2024-2026 Frenkel Smeijers
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -51,25 +51,6 @@ static boolean isGraphicsModeSet = false;
 int32_t labs(int32_t v)
 {
 	return v < 0 ? -v : v;
-}
-
-
-void __far* _fmemchr(const void __far* str, int c, size_t n)
-{
-	uint8_t __far* s = (uint8_t __far*)str;
-	uint8_t b = c;
-
-	for (size_t i = 0; i < n; i++)
-	{
-		if (*s == b)
-		{
-			return s;
-		}
-
-		s++;
-	}
-
-	return NULL;
 }
 
 

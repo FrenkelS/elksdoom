@@ -1,6 +1,6 @@
 //
 //
-// Copyright (C) 2023-2025 Frenkel Smeijers
+// Copyright (C) 2023-2026 Frenkel Smeijers
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,7 +35,6 @@
 typedef uint16_t segment_t;
 #define SIZE_OF_SEGMENT_T 2
 
-void __far* _fmemchr(const void __far* str, int c, size_t n);
 #define _fmemcpy fmemcpy
 #define _fmemset fmemset
 char __far* _fstrcpy(char __far* destination, const char __far* source);
@@ -52,7 +51,6 @@ typedef uint32_t segment_t;
 
 #define __far
 
-#define _fmemchr	memchr
 #define _fmemcpy	memcpy
 #define _fmemset	memset
 #define _fstrcpy	strcpy
